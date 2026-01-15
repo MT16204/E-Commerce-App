@@ -15,14 +15,14 @@ export const styles = StyleSheet.create({
   logoContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    marginBottom: 60,
+    gap: 8,
+    marginBottom: 40,
   },
   logoText: {
-    fontSize: 40,
+    fontSize: 42,
     fontFamily: theme.fonts.semiBold,
-    color: theme.colors.primary, // 5D76FF [cite: 2026-01-14]
-    letterSpacing: 8, // Tạo hiệu ứng hiện đại như Lovable
+    color: theme.colors.primary,
+    letterSpacing: 4,
   },
   textSection: {
     alignItems: "center",
@@ -76,34 +76,34 @@ export const styles = StyleSheet.create({
     fontSize: 17,
     fontFamily: theme.fonts.medium,
   },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 25,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#F4F4F4", // F4F4F4 [cite: 2026-01-14]
-  },
-  dividerText: {
-    paddingHorizontal: 15,
-    color: theme.colors.grayMedium,
-    fontSize: 14,
-  },
-  socialRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 20,
-  },
-  socialButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#F4F4F4", // F4F4F4 [cite: 2026-01-14]
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#EBEBEB", // EBEBEB [cite: 2026-01-14]
-  },
+  // dividerContainer: {
+  //   flexDirection: "row",
+  //   alignItems: "center",
+  //   marginVertical: 25,
+  // },
+  // line: {
+  //   flex: 1,
+  //   height: 1,
+  //   backgroundColor: "#F4F4F4", // F4F4F4 [cite: 2026-01-14]
+  // },
+  // dividerText: {
+  //   paddingHorizontal: 15,
+  //   color: theme.colors.grayMedium,
+  //   fontSize: 14,
+  // },
+  // socialRow: {
+  //   flexDirection: "row",
+  //   justifyContent: "center",
+  //   gap: 20,
+  // },
+  // socialButton: {
+  //   width: 60,
+  //   height: 60,
+  //   borderRadius: 30,
+  //   backgroundColor: "#F4F4F4",
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  //   borderWidth: 1,
+  //   borderColor: "#EBEBEB", 
+  // },
 });

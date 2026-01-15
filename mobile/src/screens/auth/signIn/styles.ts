@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   scrollContent: {
-    paddingHorizontal: scale(24), // Theo Figma: Margin trái/phải 24px
+    paddingHorizontal: scale(24), 
     paddingBottom: verticalScale(40),
   },
   backButton: {
@@ -27,15 +27,15 @@ export const styles = StyleSheet.create({
     marginBottom: verticalScale(30),
   },
   form: {
-    gap: verticalScale(16), // Theo Figma: Khoảng cách giữa các input
+    gap: verticalScale(16), 
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: theme.colors.surface,
-    borderRadius: 8, // Theo Figma: Corner radius 8px
+    borderRadius: theme.borderRadius.md,
     paddingHorizontal: scale(16),
-    height: verticalScale(56), // Theo Figma: Height 56px
+    height: verticalScale(56),
   },
   inputIcon: {
     marginRight: scale(12),
@@ -56,12 +56,11 @@ export const styles = StyleSheet.create({
     fontSize: theme.fontSize.FONT_12Px,
   },
   signInButton: {
-    height: verticalScale(56), // Theo Figma: Height 56px
-    borderRadius: 28, // Theo Figma: Pill shape
+    height: verticalScale(49), 
+    borderRadius: 28, 
     alignItems: "center",
     justifyContent: "center",
     marginTop: verticalScale(24),
-    // Shadow nhẹ cho button
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -83,7 +82,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   line: {
-    width: scale(100), // Độ dài đường kẻ
+    width: scale(100), 
     height: 1,
     backgroundColor: theme.colors.surfaceVariant,
   },
@@ -96,7 +95,7 @@ export const styles = StyleSheet.create({
   socialButtonsRow: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: scale(20), // Theo Figma: Gap 20-30px giữa các icon
+    gap: scale(20), 
   },
   socialButton: {
     width: scale(64),

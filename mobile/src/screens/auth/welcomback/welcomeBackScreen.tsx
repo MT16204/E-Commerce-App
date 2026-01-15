@@ -60,7 +60,7 @@ export default function WelcomeScreen() {
             <Text style={styles.outlineButtonText}>Sign In</Text>
           </TouchableOpacity>
 
-          <View style={styles.dividerContainer}>
+          {/* <View style={styles.dividerContainer}>
             <View style={styles.line} />
             <Text style={styles.dividerText}>Or continue with</Text>
             <View style={styles.line} />
@@ -80,7 +80,7 @@ export default function WelcomeScreen() {
             <TouchableOpacity style={styles.socialButton}>
               <Ionicons name="logo-facebook" size={24} color="#1877F2" />
             </TouchableOpacity>
-          </View>
+          </View> */}
         </Animated.View>
       </View>
     </SafeAreaView>

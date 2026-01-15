@@ -4,15 +4,19 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "node src/server.js"
+    "start": "node src/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@clerk/express": "^1.7.62",
+    "cloudinary": "^2.8.0",
     "dotenv": "^17.2.3",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "inngest": "^3.49.1",
+    "mongoose": "^8.21.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

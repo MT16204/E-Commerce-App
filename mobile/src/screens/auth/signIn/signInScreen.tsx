@@ -45,19 +45,20 @@ export default function SignInScreen() {
             />
           </TouchableOpacity>
 
-          {/* Tiêu đề Sign in - Theo Figma: Font Inter, Size 42, Bold */}
           <Animated.View entering={FadeInDown.duration(600)}>
             <Text style={styles.headerTitle}>Sign in</Text>
           </Animated.View>
 
-          {/* Form nhập liệu - Theo Figma: Gap 30px */}
           <View style={styles.form}>
-            {/* Input Email - Theo Figma: Height 56px */}
             <View style={styles.inputContainer}>
               <Ionicons
                 name="mail"
-                size={18}
-                color={theme.colors.textPlaceholder}
+                size={20}
+                color={
+                  email
+                    ? theme.colors.textPrimary
+                    : theme.colors.textPlaceholder
+                }
                 style={styles.inputIcon}
               />
               <TextInput
@@ -71,12 +72,15 @@ export default function SignInScreen() {
               />
             </View>
 
-            {/* Input Password - Theo Figma: Height 56px */}
             <View style={styles.inputContainer}>
               <Ionicons
                 name="lock-closed"
-                size={18}
-                color={theme.colors.textPlaceholder}
+                size={20}
+                color={
+                  password
+                    ? theme.colors.textPrimary
+                    : theme.colors.textPlaceholder
+                }
                 style={styles.inputIcon}
               />
               <TextInput
@@ -89,19 +93,21 @@ export default function SignInScreen() {
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons
-                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  name={showPassword ? "eye" : "eye-off"}
                   size={18}
-                  color={theme.colors.grayLight}
+                  color={
+                    showPassword
+                      ? theme.colors.textPrimary
+                      : theme.colors.textPlaceholder
+                  }
                 />
               </TouchableOpacity>
             </View>
 
-            {/* Link Quên mật khẩu - Theo Figma: Align Right */}
             <TouchableOpacity style={styles.forgotPassword}>
               <Text style={styles.forgotPasswordText}>Forgot Password ?</Text>
             </TouchableOpacity>
 
-            {/* Nút Sign in - Theo Figma: Width 382px, Height 56px */}
             <TouchableOpacity
               style={[
                 styles.signInButton,
@@ -118,7 +124,6 @@ export default function SignInScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Phần Social - Theo Figma: Gap 32px */}
           <View style={styles.socialSection}>
             <View style={styles.dividerRow}>
               <View style={styles.line} />
