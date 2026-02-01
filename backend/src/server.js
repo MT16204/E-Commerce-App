@@ -7,22 +7,19 @@ import { serve } from "inngest/express";
 import { functions, inngest } from "./config/inngest.js";
 
 const app = express();
-
 const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(clerkMiddleware());
 
-// Inngest endpoint
+// ===== API ROUTES (PHẢI ĐẶT TRƯỚC) =====
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
-// Health check endpoint
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Success" });
 });
 
-// Root endpoint - API info
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {  // ĐỔI TỪ "/" SANG "/api"
   res.json({
     status: "ok",
     message: "E-Commerce API Server",
@@ -35,25 +32,23 @@ app.get("/", (req, res) => {
   });
 });
 
-// Ready for deploy - ONLY serve admin if files exist
+// ===== SERVE ADMIN (ĐẶT SAU API ROUTES) =====
 if (ENV.NODE_ENV === "production") {
   const adminDistPath = path.join(__dirname, "../admin/dist");
   
-  // Only serve static files if admin/dist exists (for monorepo deployment)
-  try {
-    app.use(express.static(adminDistPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(adminDistPath, "index.html"));
-    });
-  } catch (error) {
-    console.log("Admin dist folder not found - running as API only");
-  }
+  // Serve static files
+  app.use(express.static(adminDistPath));
+  
+  // Catch-all route - serve index.html for SPA routing
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(adminDistPath, "index.html"));
+  });
 }
 
 const startServer = async () => {
   await connectDB();
   app.listen(ENV.PORT, () => {
-    console.log(`Server is running on port ${ENV.PORT}`);
+    console.log(`Server running on port ${ENV.PORT}`);
   });
 };
 
