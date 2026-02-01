@@ -23,7 +23,7 @@ Sentry.init({
   enableLogs: true,
 
   integrations: [Sentry.replayIntegration()],
-  replaysSessionSampleRate: 1.0,
+  replaysSessionSampleRate: 1.0, 
   replaysOnErrorSampleRate: 1.0,
 });
 
@@ -36,5 +36,5 @@ createRoot(document.getElementById("root")).render(
         </QueryClientProvider>
       </ClerkProvider>
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
 );
