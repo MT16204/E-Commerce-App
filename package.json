@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "npm install --prefix backend && npm install --include=dev --prefix admin && npm run build --prefix admin",
-    "start": "node backend/src/server.js"
+    "build": "npm install --prefix backend && npm install --prefix admin && npm run build --prefix admin",
+    "start": "npm run start --prefix backend"
   },
   "keywords": [],
   "author": "",
