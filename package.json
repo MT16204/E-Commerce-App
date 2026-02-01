@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npm install --prefix backend && npm install --include=dev --prefix admin && npm run build --prefix admin",
-    "start": "npm run start --prefix backend"
+    "start": "node backend/src/server.js"
   },
   "keywords": [],
   "author": "",

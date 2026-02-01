@@ -35,23 +35,22 @@ app.get("/api", (req, res) => {
 
 // ===== SERVE ADMIN (ĐẶT SAU API ROUTES) =====
 if (ENV.NODE_ENV === "production") {
-  // Sử dụng process.cwd() để trỏ về gốc dự án (/app)
-  const adminDistPath = path.join(process.cwd(), "admin", "dist");
+  // Logic này sẽ tự động tìm đúng thư mục admin dù bạn đứng ở root hay backend
+  const currentDir = process.cwd();
+  const adminDistPath = currentDir.endsWith("backend")
+    ? path.join(currentDir, "../admin/dist")
+    : path.join(currentDir, "admin", "dist");
 
-  console.log("Serving Admin from:", adminDistPath); // Thêm log này để debug trên Railway
+  console.log("✅ Serving Admin from:", adminDistPath);
 
-  // Phải dùng đường dẫn tuyệt đối cho static
   app.use(express.static(adminDistPath));
 
-  // Catch-all route
-  app.get("*", (req, res) => {
+  // Sửa lỗi PathError tại đây: dùng "(.*)" thay vì "*"
+  app.get("(.*)", (req, res) => {
     res.sendFile(path.join(adminDistPath, "index.html"), (err) => {
       if (err) {
-        res
-          .status(500)
-          .send(
-            "Không tìm thấy file index.html của Admin tại: " + adminDistPath,
-          );
+        console.error("❌ Error sending index.html:", err);
+        res.status(500).send("Không tìm thấy file build của Admin.");
       }
     });
   });
