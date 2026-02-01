@@ -21,21 +21,22 @@ const app = express();
 
 const __dirname = path.resolve();
 
+
 // app.use(
 //   "/api/payment",
 //   (req, res, next) => {
 //     if (req.originalUrl === "/api/payment/webhook") {
 //       express.raw({ type: "application/json" })(req, res, next);
 //     } else {
-//       express.json()(req, res, next);
+//       express.json()(req, res, next); 
 //     }
 //   },
 //   paymentRoutes
 // );
 
 app.use(express.json());
-app.use(clerkMiddleware());
-// app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
+app.use(clerkMiddleware()); 
+// app.use(cors({ origin: ENV.CLIENT_URL, credentials: true })); 
 
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
@@ -50,18 +51,11 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Success" });
 });
 
-// ===== PHẦN QUAN TRỌNG ĐỂ HIỆN ADMIN =====
 if (ENV.NODE_ENV === "production") {
-  // Dùng process.cwd() để lấy gốc /app trên Railway
-  const adminDistPath = path.join(process.cwd(), "admin", "dist");
+  app.use(express.static(path.join(__dirname, "../admin/dist")));
 
-  console.log("✅ Serving Admin from:", adminDistPath);
-
-  app.use(express.static(adminDistPath));
-
-  // SỬA TẠI ĐÂY: Thay "/{*any}" bằng "*" để tránh lỗi PathError
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(adminDistPath, "index.html"));
+  app.get("/{*any}", (req, res) => {
+    res.sendFile(path.join(__dirname, "../admin", "dist", "index.html"));
   });
 }
 
