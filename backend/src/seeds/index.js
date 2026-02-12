@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Product } from "../models/product.model.js";
+import { Cart } from "../models/cart.model.js";
 import { ENV } from "../config/env.js";
 
 const products = [
@@ -37,7 +38,7 @@ const products = [
       "Handcrafted genuine leather bag with adjustable strap. Features multiple compartments and elegant design perfect for daily use.",
     price: 89.99,
     stock: 25,
-    category: "Fashion",
+    category: "Clothes",
     images: [
       "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500",
       "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500",
@@ -51,7 +52,7 @@ const products = [
       "Lightweight running shoes with responsive cushioning and breathable mesh upper. Designed for performance and comfort during long runs.",
     price: 129.99,
     stock: 60,
-    category: "Sports",
+    category: "Shoes",
     images: [
       "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500",
       "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500",
@@ -143,6 +144,30 @@ const products = [
     averageRating: 4.6,
     totalReviews: 134,
   },
+  {
+    name: "Modern Velvet Sofa",
+    description:
+      "Elegant 3-seater sofa with velvet upholstery and gold-finished legs. Add a touch of luxury to your living room.",
+    price: 599.99,
+    stock: 10,
+    category: "Furniture",
+    images: ["https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500"],
+    averageRating: 4.8,
+    totalReviews: 45,
+  },
+  {
+    name: "Matte Lipstick Set",
+    description:
+      "A collection of 5 long-lasting matte lipsticks in essential shades for every occasion.",
+    price: 35.0,
+    stock: 100,
+    category: "Cosmetics",
+    images: [
+      "https://images.unsplash.com/photo-1635011340525-87de5b4f170e?w=500",
+    ],
+    averageRating: 4.6,
+    totalReviews: 210,
+  },
 ];
 
 const seedDatabase = async () => {
@@ -154,6 +179,9 @@ const seedDatabase = async () => {
     // Clear existing products
     await Product.deleteMany({});
     console.log("🗑️  Cleared existing products");
+
+    await Cart.deleteMany({});
+    console.log("🗑️  Cleared existing carts");
 
     // Insert seed products
     await Product.insertMany(products);

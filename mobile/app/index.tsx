@@ -9,10 +9,12 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import theme from "@/theme";
+import theme from "../theme";
+import { useAuth } from "@clerk/clerk-expo";
 
 export default function Index() {
   const router = useRouter();
+  const { isLoaded, isSignedIn } = useAuth();
 
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.8);
@@ -27,15 +29,29 @@ export default function Index() {
     });
     textX.value = withDelay(300, withTiming(0, { duration: 500 }));
     iconX.value = withDelay(500, withTiming(0, { duration: 500 }));
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded) return;
 
     const timer = setTimeout(() => {
-      // Thay đổi đường dẫn này tới nơi chứa Onboarding của bạn
-      // Ví dụ nếu bạn để trong (auth)/onboarding
-      router.replace("/onboarding");
+      const hasSeenOnboarding = true;
+
+      if (!hasSeenOnboarding) {
+        router.replace("/onboarding");
+        return;
+      }
+
+      if (!isSignedIn) {
+        router.replace("/welcome");
+        return;
+      }
+
+      router.replace("/home");
     }, 2500);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [isLoaded, isSignedIn]);
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -79,12 +95,12 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.primary, // Màu #5D76FF
+    backgroundColor: theme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
   logoText: {
-    fontFamily: theme.fonts.medium,
+    fontFamily: theme.fonts.regular,
     fontSize: theme.fontSize.FONT_42Px,
     letterSpacing: 10,
     color: theme.colors.white,
