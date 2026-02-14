@@ -1,31 +1,45 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   ScrollView,
   Text,
   TouchableOpacity,
   View,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons, Feather } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { Href, useRouter } from "expo-router";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 
 import theme, { scale, verticalScale } from "@/theme";
 import SafeScreen from "@/components/SafeScreen";
 import { FocusAwareStatusBar } from "@/components/StatusBar";
 
-const MENU_GROUPS = [
-  { id: "edit", icon: "user", title: "Edit Profile", action: "/profile" },
+interface MenuItem {
+  id: string;
+  icon: string;
+  title: string;
+  action: any; 
+}
+
+const MENU_GROUPS: MenuItem[] = [
+  {
+    id: "edit",
+    icon: "user",
+    title: "Edit Profile",
+    action: "/(auth)/edit-profile",
+  },
   { id: "address", icon: "map-pin", title: "Address", action: "/addresses" },
+  { id: "orders", icon: "shopping-bag", title: "My Orders", action: "/orders" },
+  { id: "wishlist", icon: "heart", title: "Wishlist", action: "/wishList" },
   {
     id: "notif",
     icon: "bell",
     title: "Notification",
     action: "/notifications",
   },
-  { id: "security", icon: "shield", title: "Security", action: "/security" },
-  { id: "privacy", icon: "lock", title: "Privacy Policy", action: "/privacy" },
+  { id: "privacy-security", icon: "lock", title: "Privacy&Security", action: "/privacy-security" },
   { id: "help", icon: "info", title: "Help Center", action: "/help" },
 ];
 
@@ -33,6 +47,31 @@ const ProfileScreen = () => {
   const router = useRouter();
   const { signOut } = useAuth();
   const { user } = useUser();
+
+  const handleMenuPress = useCallback(
+    (action: any) => {
+      if (!action) return;
+
+      if (action === "/help") {
+        Alert.alert("Coming Soon", "This feature is under development.");
+        return;
+      }
+
+      router.push(action);
+    },
+    [router],
+  );
+
+  const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: () => signOut(),
+      },
+    ]);
+  };
 
   return (
     <SafeScreen
@@ -80,14 +119,17 @@ const ProfileScreen = () => {
               <TouchableOpacity
                 key={item.id}
                 style={styles.menuItem}
-                onPress={() => item.action && router.push(item.action as any)}
+                activeOpacity={0.6}
+                onPress={() => handleMenuPress(item.action)}
               >
                 <View style={styles.menuLeft}>
-                  <Feather
-                    name={item.icon as any}
-                    size={20}
-                    color={theme.colors.black}
-                  />
+                  <View style={styles.iconContainer}>
+                    <Feather
+                      name={item.icon as any}
+                      size={20}
+                      color={theme.colors.black}
+                    />
+                  </View>
                   <Text style={styles.menuTitle}>{item.title}</Text>
                 </View>
                 <Feather
@@ -98,18 +140,26 @@ const ProfileScreen = () => {
               </TouchableOpacity>
             ))}
 
+            {/* LOGOUT BUTTON */}
             <TouchableOpacity
               style={[styles.menuItem, { borderBottomWidth: 0 }]}
-              onPress={() => signOut()}
+              activeOpacity={0.6}
+              onPress={handleLogout}
             >
               <View style={styles.menuLeft}>
-                <Feather name="log-out" size={20} color="#F75555" />
-                <Text style={[styles.menuTitle, { color: "#F75555" }]}>
+                <View
+                  style={[styles.iconContainer, { backgroundColor: "#FFF1F1" }]}
+                >
+                  <Feather name="log-out" size={20} color={theme.colors.red} />
+                </View>
+                <Text style={[styles.menuTitle, { color: theme.colors.red }]}>
                   Logout
                 </Text>
               </View>
             </TouchableOpacity>
           </View>
+
+          <Text style={styles.versionText}>Version 1.0.2 (2026)</Text>
         </ScrollView>
       </View>
     </SafeScreen>
@@ -123,7 +173,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: scale(20),
-    paddingBottom: verticalScale(20),
+    paddingBottom: verticalScale(30),
   },
   headerRow: {
     flexDirection: "row",
@@ -154,7 +204,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: theme.fonts.bold,
     marginTop: verticalScale(12),
-    color: "#000000",
+    color: theme.colors.black,
   },
   userEmail: {
     fontSize: 14,
@@ -182,6 +232,20 @@ const styles = StyleSheet.create({
     fontFamily: theme.fonts.medium,
     marginLeft: scale(15),
     color: theme.colors.textPrimary,
+  },
+  iconContainer: {
+    width: scale(40),
+    height: scale(25),
+    borderRadius: scale(12),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  versionText: {
+    textAlign: "center",
+    color: theme.colors.grayMedium,
+    fontSize: 12,
+    marginTop: verticalScale(30),
+    fontFamily: theme.fonts.regular,
   },
 });
 

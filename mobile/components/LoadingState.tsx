@@ -1,17 +1,37 @@
-import { View, Text, ActivityIndicator } from "react-native";
+import React from "react";
+import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import theme, { scale, verticalScale } from "@/theme";
 
 interface LoadingStateProps {
   message?: string;
   color?: string;
 }
 
-const LoadingState = ({ message = "Loading...", color = "#00D9FF" }: LoadingStateProps) => {
+const LoadingState = ({
+  message = "Loading...",
+  color = theme.colors.primary, 
+}: LoadingStateProps) => {
   return (
-    <View className="flex-1 bg-background items-center justify-center">
-      <ActivityIndicator size={"large"} color={color} />
-      <Text className="text-text-secondary mt-4">{message}</Text>
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color={color} />
+      {message && <Text style={styles.text}>{message}</Text>}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.backgroundhome,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  text: {
+    fontFamily: theme.fonts.medium,
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    marginTop: verticalScale(15),
+  },
+});
 
 export default LoadingState;

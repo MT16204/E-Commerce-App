@@ -41,6 +41,13 @@
           "project": "react-native",
           "organization": "tuan-h5"
         }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.nova.app",
+          "enableGooglePay": true
+        }
       ]
     ],
     "experiments": {

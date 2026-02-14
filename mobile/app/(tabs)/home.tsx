@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ImageBackground,
   StyleSheet,
   StatusBar,
+  FlatList,
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons, Octicons } from "@expo/vector-icons";
@@ -16,6 +17,7 @@ import SafeScreen from "@/components/SafeScreen";
 import ProductsGrid from "@/components/ProductsGrid";
 import useProducts from "@/hooks/useProducts";
 import LoadingState from "@/components/LoadingState";
+import PromoCarousel from "@/components/PromoCarousel";
 
 const CATEGORIES = [
   { name: "All", icon: "apps" as const, isIcon: true },
@@ -52,6 +54,27 @@ const CATEGORIES = [
   },
 ];
 
+const PROMOS = [
+  {
+    id: "1",
+    title: "Today's Special",
+    desc: "Get discount for every order, only for today",
+    image: require("@/assets/images/promo.png"),
+  },
+  {
+    id: "2",
+    title: "New Arrival",
+    desc: "Check out our latest premium collections",
+    image: require("@/assets/images/promo.png"),
+  },
+  {
+    id: "3",
+    title: "Flash Sale",
+    desc: "Limited time offer up to 50% off",
+    image: require("@/assets/images/promo.png"),
+  },
+];
+
 const HomeScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -72,6 +95,18 @@ const HomeScreen = () => {
     return filtered;
   }, [products, selectedCategory, searchQuery]);
 
+  const flatListRef = useRef<FlatList>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      let nextIndex = (currentIndex + 1) % PROMOS.length;
+      setCurrentIndex(nextIndex);
+      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [currentIndex]);
+
   return (
     <View style={styles.container}>
       {/* Để StatusBar translucent để ảnh nền tràn lên đỉnh */}
@@ -85,7 +120,7 @@ const HomeScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: verticalScale(100) }}
       >
-        {/* HEADER SECTION - Đã tối ưu khoảng trống */}
+        {/* HEADER SECTION */}
         <ImageBackground
           source={require("@/assets/images/headerbackground.png")}
           style={styles.headerImageBg}
@@ -138,7 +173,7 @@ const HomeScreen = () => {
 
               <Text style={styles.categoryTitle}>Popular Categories</Text>
 
-              {/* Horizontal Categories - Cập nhật Active State màu 5D76FF */}
+              {/* Horizontal Categories */}
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -193,40 +228,7 @@ const HomeScreen = () => {
 
         {/* PROMO & PRODUCTS SECTION */}
         <View style={styles.contentBody}>
-          <View style={styles.promoCard}>
-            <View style={styles.promoTextSide}>
-              <Text style={styles.promoHeading}>Today’s Special</Text>
-              <Text style={styles.promoDesc} numberOfLines={2}>
-                Get discount for every order, only for today
-              </Text>
-              <View style={styles.pageIndicator}>
-                <View style={styles.dotLong} />
-                <View
-                  style={[
-                    styles.dotSmall,
-                    { backgroundColor: theme.colors.primaryDisabled },
-                  ]}
-                />
-                <View
-                  style={[
-                    styles.dotSmall,
-                    { backgroundColor: theme.colors.primaryDisabled },
-                  ]}
-                />
-                <View
-                  style={[
-                    styles.dotSmall,
-                    { backgroundColor: theme.colors.primaryDisabled },
-                  ]}
-                />
-              </View>
-            </View>
-            <Image
-              source={require("@/assets/images/promo.png")}
-              style={styles.promoImg}
-              contentFit="contain"
-            />
-          </View>
+            <PromoCarousel />
 
           <View style={styles.listHeader}>
             <Text style={styles.listTitle}>Most Popular</Text>
@@ -241,8 +243,8 @@ const HomeScreen = () => {
             </View>
           ) : isError ? (
             <View style={styles.statusContainer}>
-              <Ionicons name="alert-circle-outline" size={48} color="red" />
-              <Text style={[styles.statusText, { color: "red" }]}>
+              <Ionicons name="alert-circle-outline" size={48} color={theme.colors.red} />
+              <Text style={[styles.statusText, { color: theme.colors.red }]}>
                 Something went wrong!
               </Text>
             </View>
@@ -268,7 +270,7 @@ const styles = StyleSheet.create({
   },
   headerImageBg: {
     width: "100%",
-    minHeight: verticalScale(300), // Giảm nhẹ chiều cao để gọn hơn
+    minHeight: verticalScale(300), 
   },
   headerImageStyle: {
     borderBottomLeftRadius: scale(32),
@@ -281,7 +283,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: verticalScale(10), 
+    marginTop: verticalScale(10),
     marginBottom: verticalScale(20),
   },
   logoText: {
@@ -345,59 +347,59 @@ const styles = StyleSheet.create({
   },
   contentBody: {
     paddingHorizontal: scale(16),
-    marginTop: verticalScale(10), // Giảm marginTop để nội dung sát lên Header
+    marginTop: verticalScale(20),
   },
-  promoCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: scale(32),
-    flexDirection: "row",
-    height: verticalScale(160),
-    padding: scale(20),
-    alignItems: "center",
-    overflow: "hidden",
-    marginBottom: verticalScale(25),
-  },
-  promoTextSide: {
-    flex: 1.2,
-    zIndex: 2,
-  },
-  promoHeading: {
-    fontSize: theme.fontSize.FONT_24Px,
-    fontFamily: theme.fonts.bold,
-    color: theme.colors.black,
-    marginBottom: verticalScale(5),
-  },
-  promoDesc: {
-    fontSize: theme.fontSize.FONT_12Px,
-    fontFamily: theme.fonts.regular,
-    color: theme.colors.black,
-    lineHeight: 16,
-  },
-  promoImg: {
-    width: scale(160),
-    height: "120%",
-    position: "absolute",
-    right: -scale(10),
-    top: 0,
-  },
-  pageIndicator: {
-    flexDirection: "row",
-    marginTop: verticalScale(15),
-    alignItems: "center",
-  },
-  dotLong: {
-    width: scale(24),
-    height: 4,
-    borderRadius: 4,
-    backgroundColor: theme.colors.primary,
-    marginRight: 4,
-  },
-  dotSmall: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    marginRight: 4,
-  },
+  // promoCard: {
+  //   backgroundColor: theme.colors.surface,
+  //   borderRadius: scale(32),
+  //   flexDirection: "row",
+  //   height: verticalScale(160),
+  //   padding: scale(20),
+  //   alignItems: "center",
+  //   overflow: "hidden",
+  //   marginBottom: verticalScale(25),
+  // },
+  // promoTextSide: {
+  //   flex: 1.2,
+  //   zIndex: 2,
+  // },
+  // promoHeading: {
+  //   fontSize: theme.fontSize.FONT_24Px,
+  //   fontFamily: theme.fonts.bold,
+  //   color: theme.colors.black,
+  //   marginBottom: verticalScale(5),
+  // },
+  // promoDesc: {
+  //   fontSize: theme.fontSize.FONT_12Px,
+  //   fontFamily: theme.fonts.regular,
+  //   color: theme.colors.black,
+  //   lineHeight: 16,
+  // },
+  // promoImg: {
+  //   width: scale(160),
+  //   height: "120%",
+  //   position: "absolute",
+  //   right: -scale(10),
+  //   top: 0,
+  // },
+  // pageIndicator: {
+  //   flexDirection: "row",
+  //   marginTop: verticalScale(15),
+  //   alignItems: "center",
+  // },
+  // dotLong: {
+  //   width: scale(24),
+  //   height: 4,
+  //   borderRadius: 4,
+  //   backgroundColor: theme.colors.primary,
+  //   marginRight: 4,
+  // },
+  // dotSmall: {
+  //   width: 4,
+  //   height: 4,
+  //   borderRadius: 2,
+  //   marginRight: 4,
+  // },
   listHeader: {
     flexDirection: "row",
     justifyContent: "space-between",

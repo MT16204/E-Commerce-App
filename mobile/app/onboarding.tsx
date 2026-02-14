@@ -204,7 +204,7 @@ export const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#EBEBEB", 
+    backgroundColor: theme.colors.surfaceVariant, 
   },
   activeDot: {
     width: 28,

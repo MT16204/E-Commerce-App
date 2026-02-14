@@ -67,20 +67,17 @@ const useCart = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
   });
 
-  // --- PHẦN SỬA LỖI TẠI ĐÂY ---
   const cartTotal =
     cart?.items.reduce((sum, item) => {
-      // Kiểm tra nếu sản phẩm bị null (do đã bị xóa khỏi DB) thì bỏ qua không cộng giá
       const itemPrice = item.product?.price ?? 0;
       return sum + itemPrice * item.quantity;
     }, 0) ?? 0;
 
   const cartItemCount =
     cart?.items.reduce((sum, item) => {
-      // Chỉ đếm số lượng nếu sản phẩm đó vẫn tồn tại
       return item.product ? sum + item.quantity : sum;
     }, 0) ?? 0;
-  // ----------------------------
+
 
   return {
     cart,

@@ -3,7 +3,7 @@ import useWishlist from "@/hooks/useWishlist";
 import theme, { scale } from "@/theme";
 import { Product } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, Href } from "expo-router";
 import {
   View,
   Text,
@@ -52,7 +52,7 @@ const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps) => {
       className="bg-[#efeeee] rounded-3xl overflow-hidden mb-3"
       style={{ width: "48%" }}
       activeOpacity={0.8}
-      //   onPress={() => router.push(`/product/${product._id}`)}
+        onPress={() => router.push(`/product/${product._id}` as Href)}
     >
       <View className="relative">
         <Image

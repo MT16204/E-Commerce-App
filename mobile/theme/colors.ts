@@ -26,4 +26,6 @@ export const colors = {
   // 5. Static Colors
   white: '#FFFFFF',
   black: '#000000',
+  red: '#EF4444',
+  green: '#22C55E'
 };

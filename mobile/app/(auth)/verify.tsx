@@ -277,7 +277,7 @@ export const styles = StyleSheet.create({
     fontSize: theme.fontSize.FONT_16Px,
     fontFamily: theme.fonts.bold,
   },
-  // Footer / Timer
+  // Footer 
   timerText: {
     fontSize: theme.fontSize.FONT_14Px,
     color: theme.colors.textSecondary,

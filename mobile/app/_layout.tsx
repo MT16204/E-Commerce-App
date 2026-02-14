@@ -23,7 +23,7 @@ import {
 import { Poppins_300Light } from "@expo-google-fonts/poppins";
 
 import * as Sentry from "@sentry/react-native";
-// import { StripeProvider } from "@stripe/stripe-react-native";
+import { StripeProvider } from "@stripe/stripe-react-native"; 
 
 Sentry.init({
   dsn: "https://56e39572f6a2b4e2bc922c1037ff808b@o4510810408091648.ingest.us.sentry.io/4510874071662593",
@@ -64,18 +64,6 @@ const queryClient = new QueryClient({
   }),
 });
 
-// export default Sentry.wrap(function RootLayout() {
-//   return (
-//     <ClerkProvider tokenCache={tokenCache}>
-//       <QueryClientProvider client={queryClient}>
-//         <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
-//           <Stack screenOptions={{ headerShown: false }} />
-//         </StripeProvider>
-//       </QueryClientProvider>
-//     </ClerkProvider>
-//   );}
-// );
-
 export default Sentry.wrap(function RootLayout() {
   const [loaded] = useFonts({
     "Inter-Regular": Inter_400Regular,
@@ -91,7 +79,11 @@ export default Sentry.wrap(function RootLayout() {
   return (
     <ClerkProvider tokenCache={tokenCache}>
       <QueryClientProvider client={queryClient}>
-        <Stack screenOptions={{ headerShown: false }} />
+        <StripeProvider
+          publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}
+        >
+          <Stack screenOptions={{ headerShown: false }} />
+        </StripeProvider>
       </QueryClientProvider>
     </ClerkProvider>
   );

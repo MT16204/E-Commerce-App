@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { type } from "os";
 
 const addressSchema = new mongoose.Schema({
   label: {
@@ -54,6 +55,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+    },
+    stripeCustomerId: {
+      type: String,
+      default: "",
     },
     addresses: [addressSchema],
     wishlist: [
