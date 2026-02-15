@@ -54,26 +54,26 @@ const CATEGORIES = [
   },
 ];
 
-const PROMOS = [
-  {
-    id: "1",
-    title: "Today's Special",
-    desc: "Get discount for every order, only for today",
-    image: require("@/assets/images/promo.png"),
-  },
-  {
-    id: "2",
-    title: "New Arrival",
-    desc: "Check out our latest premium collections",
-    image: require("@/assets/images/promo.png"),
-  },
-  {
-    id: "3",
-    title: "Flash Sale",
-    desc: "Limited time offer up to 50% off",
-    image: require("@/assets/images/promo.png"),
-  },
-];
+// const PROMOS = [
+//   {
+//     id: "1",
+//     title: "Today's Special",
+//     desc: "Get discount for every order, only for today",
+//     image: require("@/assets/images/promo.png"),
+//   },
+//   {
+//     id: "2",
+//     title: "New Arrival",
+//     desc: "Check out our latest premium collections",
+//     image: require("@/assets/images/promo.png"),
+//   },
+//   {
+//     id: "3",
+//     title: "Flash Sale",
+//     desc: "Limited time offer up to 50% off",
+//     image: require("@/assets/images/promo.png"),
+//   },
+// ];
 
 const HomeScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,18 +94,6 @@ const HomeScreen = () => {
     }
     return filtered;
   }, [products, selectedCategory, searchQuery]);
-
-  const flatListRef = useRef<FlatList>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      let nextIndex = (currentIndex + 1) % PROMOS.length;
-      setCurrentIndex(nextIndex);
-      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [currentIndex]);
 
   return (
     <View style={styles.container}>

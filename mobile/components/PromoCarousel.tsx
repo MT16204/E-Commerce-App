@@ -18,27 +18,33 @@ const CARD_WIDTH = SCREEN_WIDTH - scale(32);
 const PROMOS = [
   {
     id: "1",
-    title: "Today's Special",
-    desc: "Get discount for every order, only for today",
-    image: require("@/assets/images/promo-4.png"),
+    title: "Fashion Collection",
+    desc: "Explore the latest trends and upgrade your wardrobe today",
+    image: require("@/assets/images/promo-1.png"),
   },
   {
     id: "2",
-    title: "New Arrival",
-    desc: "Check out our latest premium collections",
-    image: require("@/assets/images/promo-1.jpeg"),
-  },
-  {
-    id: "3",
-    title: "Flash Sale",
-    desc: "Limited time offer up to 50% off",
+    title: "Jewelry Collection",
+    desc: "Elegant pieces crafted to make you shine every moment",
     image: require("@/assets/images/promo-2.jpeg"),
   },
   {
+    id: "3",
+    title: "Tech Essentials",
+    desc: "Discover cutting-edge gadgets for your modern lifestyle",
+    image: require("@/assets/images/promo-3.png"),
+  },
+  {
     id: "4",
-    title: "Flash Sale",
-    desc: "Limited time offer up to 50% off",
-    image: require("@/assets/images/promo-3.jpeg"),
+    title: "Beauty & Cosmetics",
+    desc: "Premium skincare and makeup for your daily glow",
+    image: require("@/assets/images/promo-4.png"),
+  },
+  {
+    id: "5",
+    title: "Sports & Fitness",
+    desc: "Gear up with quality equipment for an active lifestyle",
+    image: require("@/assets/images/promo-5.png"),
   },
 ];
 
@@ -84,7 +90,9 @@ const PromoCarousel: React.FC = () => {
                   index === currentIndex ? styles.dotLong : styles.dotSmall,
                   {
                     backgroundColor:
-                      index === currentIndex ? theme.colors.primary : theme.colors.grayLight,
+                      index === currentIndex
+                        ? theme.colors.primary
+                        : theme.colors.grayLight,
                   },
                 ]}
               />
@@ -95,11 +103,7 @@ const PromoCarousel: React.FC = () => {
 
       {/* Image Side */}
       <View style={styles.imageSide}>
-        <Image
-          source={item.image}
-          style={styles.promoImg}
-          contentFit="cover" 
-        />
+        <Image source={item.image} style={styles.promoImg} contentFit="cover" />
       </View>
     </View>
   );
@@ -135,14 +139,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   textSide: {
-    flex: 1, 
+    flex: 1,
     paddingLeft: scale(25),
-    paddingRight: scale(10), 
+    paddingRight: scale(10),
     justifyContent: "center",
     zIndex: 10,
   },
   imageSide: {
-    flex: 1, 
+    flex: 1,
     height: "100%",
   },
   title: {
@@ -160,7 +164,7 @@ const styles = StyleSheet.create({
   promoImg: {
     width: "100%",
     height: "100%",
-    position: 'absolute',
+    position: "absolute",
     right: -scale(5),
   },
   indicatorContainer: {
