@@ -203,9 +203,6 @@ export default function SignInScreen() {
                   color={theme.colors.black}
                 />
               </TouchableOpacity>
-              {/* <TouchableOpacity style={styles.socialButton}>
-                <Ionicons name="logo-facebook" size={24} color="#1877F2" />
-              </TouchableOpacity> */}
             </View>
           </View>
 

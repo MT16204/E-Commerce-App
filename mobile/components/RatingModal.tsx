@@ -32,7 +32,6 @@ const RatingModal = ({
 }: RatingModalProps) => {
   return (
     <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={onClose}>
-      {/* backdrop layer */}
       <TouchableWithoutFeedback onPress={onClose}>
         <View className="flex-1 bg-black/70 items-center justify-center px-4">
           <TouchableWithoutFeedback>

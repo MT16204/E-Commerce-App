@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   },
   labelRow: { flexDirection: "row", alignItems: "center" },
   iconContainer: {
-    backgroundColor: "#F0F3FF", // Primary nhạt
+    backgroundColor: "#F0F3FF",
     width: scale(36),
     height: scale(36),
     borderRadius: scale(18),

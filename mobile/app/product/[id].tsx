@@ -245,8 +245,6 @@ const ProductDetailScreen = () => {
   );
 };
 
-// --- SUB COMPONENTS ---
-
 function ErrorUI() {
   return (
     <SafeScreen style={styles.center}>

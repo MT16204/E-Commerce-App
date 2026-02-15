@@ -225,7 +225,6 @@ export const styles = StyleSheet.create({
     fontFamily: theme.fonts.semiBold,
     color: theme.colors.heading,
   },
-  // Text hướng dẫn
   subText: {
     fontSize: theme.fontSize.FONT_14Px,
     fontFamily: theme.fonts.regular,
@@ -234,7 +233,6 @@ export const styles = StyleSheet.create({
     lineHeight: verticalScale(22),
     marginBottom: verticalScale(40),
   },
-  // OTP Inputs Group
   otpContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -244,7 +242,7 @@ export const styles = StyleSheet.create({
   otpBox: {
     width: scale(54),
     height: scale(64),
-    backgroundColor: theme.colors.surface, // Màu F4F4F4
+    backgroundColor: theme.colors.surface, 
     borderRadius: 12,
     textAlign: "center",
     fontSize: 22,
@@ -257,7 +255,6 @@ export const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
     backgroundColor: theme.colors.white,
   },
-  // Nút Verify
   verifyButton: {
     height: verticalScale(50),
     borderRadius: 25,
@@ -265,7 +262,6 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: verticalScale(10),
-    // Shadow cho nút
     shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -277,7 +273,6 @@ export const styles = StyleSheet.create({
     fontSize: theme.fontSize.FONT_16Px,
     fontFamily: theme.fonts.bold,
   },
-  // Footer 
   timerText: {
     fontSize: theme.fontSize.FONT_14Px,
     color: theme.colors.textSecondary,

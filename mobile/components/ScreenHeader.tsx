@@ -6,8 +6,8 @@ import theme, { scale, verticalScale } from "@/theme";
 
 interface ScreenHeaderProps {
   title: string;
-  count?: number; // Số lượng item (nếu có)
-  unit?: string; // Đơn vị: "item", "order", v.v.
+  count?: number; 
+  unit?: string; 
   showBackButton?: boolean;
 }
 

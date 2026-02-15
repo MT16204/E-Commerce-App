@@ -29,17 +29,15 @@ export default function SignUpScreen() {
   const isFormValid =
     username.trim() !== "" && email.includes("@") && password.length >= 8;
 
-  // Logic Đăng ký & Gửi OTP
   const onSignUpPress = async () => {
     if (!isLoaded) return;
     setLoading(true);
     try {
-      // Cập nhật: Thêm firstName để Inngest nhận diện được tên người dùng
       await signUp.create({
-        username: username, // Lưu vào username của Clerk
+        username: username,
         emailAddress: email,
         password,
-        firstName: username, // Lưu vào firstName để Inngest lấy làm 'name' trong DB
+        firstName: username,
       });
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });

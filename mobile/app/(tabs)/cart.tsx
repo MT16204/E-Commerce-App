@@ -199,7 +199,6 @@ const CartScreen = () => {
         </View>
       ) : (
         <View style={{ flex: 1 }}>
-          {/* THANH SELECT ALL DỰA TRÊN MÀU SẮC CART(2) */}
           <View style={styles.selectAllBar}>
             <TouchableOpacity
               style={styles.checkAllBtn}
@@ -333,7 +332,7 @@ const CartScreen = () => {
             })}
           </ScrollView>
 
-          {/* CHECKOUT FOOTER GIỮ NGUYÊN STYLE CART(2) */}
+          {/* CHECKOUT FOOTER */}
           <View style={styles.footer}>
             <View style={styles.footerRow}>
               <Text style={styles.totalLabel}>

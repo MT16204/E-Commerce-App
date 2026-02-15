@@ -141,34 +141,4 @@ export const styles = StyleSheet.create({
     fontFamily: theme.fonts.semiBold,
     padding: 10,
   },
-  // dividerContainer: {
-  //   flexDirection: "row",
-  //   alignItems: "center",
-  //   marginVertical: 25,
-  // },
-  // line: {
-  //   flex: 1,
-  //   height: 1,
-  //   backgroundColor: "#F4F4F4", // F4F4F4 [cite: 2026-01-14]
-  // },
-  // dividerText: {
-  //   paddingHorizontal: 15,
-  //   color: theme.colors.grayMedium,
-  //   fontSize: 14,
-  // },
-  // socialRow: {
-  //   flexDirection: "row",
-  //   justifyContent: "center",
-  //   gap: 20,
-  // },
-  // socialButton: {
-  //   width: 60,
-  //   height: 60,
-  //   borderRadius: 30,
-  //   backgroundColor: "#F4F4F4",
-  //   alignItems: "center",
-  //   justifyContent: "center",
-  //   borderWidth: 1,
-  //   borderColor: "#EBEBEB",
-  // },
 });

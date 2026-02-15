@@ -64,7 +64,6 @@ export default function OnboardingScreen() {
       </TouchableOpacity>
 
       <View style={styles.content}>
-        {/* 1. HIỆU ỨNG ẢNH: Fade từ phải qua trái */}
         <View style={styles.imageWrapper}>
           <Animated.Image
             key={`img-${currentSlide}`}
@@ -184,7 +183,7 @@ export const styles = StyleSheet.create({
   },
   description: {
     fontSize: 15,
-    color: theme.colors.grayMedium, // 999999 [cite: 2026-01-14]
+    color: theme.colors.grayMedium, 
     lineHeight: 22,
     fontFamily: theme.fonts.regular,
     marginTop: 10,

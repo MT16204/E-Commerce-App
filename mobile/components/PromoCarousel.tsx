@@ -13,7 +13,6 @@ import { Image } from "expo-image";
 import theme, { scale, verticalScale } from "@/theme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-// Đảm bảo CARD_WIDTH khớp với padding của contentBody ở HomeScreen
 const CARD_WIDTH = SCREEN_WIDTH - scale(32);
 
 const PROMOS = [
@@ -70,14 +69,12 @@ const PromoCarousel: React.FC = () => {
 
   const renderItem = ({ item }: { item: (typeof PROMOS)[0] }) => (
     <View style={[styles.card, { width: CARD_WIDTH }]}>
-      {/* Text Side - Dùng flex để ép text phải wrap trong không gian còn lại */}
       <View style={styles.textSide}>
         <Text style={styles.title} numberOfLines={2}>
           {item.title}
         </Text>
         <Text style={styles.desc}>{item.desc}</Text>
 
-        {/* Indicators nằm gọn dưới text */}
         <View style={styles.indicatorContainer}>
           {PROMOS.map((_, index) => (
             <TouchableOpacity key={index} onPress={() => scrollTo(index)}>
@@ -87,7 +84,7 @@ const PromoCarousel: React.FC = () => {
                   index === currentIndex ? styles.dotLong : styles.dotSmall,
                   {
                     backgroundColor:
-                      index === currentIndex ? theme.colors.primary : "#B2B2B2", // Dùng màu B2B2B2 từ palette của bạn
+                      index === currentIndex ? theme.colors.primary : theme.colors.grayLight,
                   },
                 ]}
               />
@@ -101,7 +98,7 @@ const PromoCarousel: React.FC = () => {
         <Image
           source={item.image}
           style={styles.promoImg}
-          contentFit="cover" // Đổi sang cover để ảnh tràn đẹp hơn như thiết kế
+          contentFit="cover" 
         />
       </View>
     </View>

@@ -218,7 +218,6 @@ function AddressesScreen() {
   );
 }
 
-// UI Trạng thái lỗi
 function ErrorUI() {
   return (
     <SafeScreen style={styles.container}>
@@ -237,8 +236,6 @@ function ErrorUI() {
     </SafeScreen>
   );
 }
-
-// UI Trạng thái Loading
 function LoadingUI() {
   return (
     <SafeScreen style={styles.container}>

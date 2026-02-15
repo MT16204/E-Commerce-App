@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.white,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    maxHeight: "80%", // Tăng chiều cao để dễ nhìn hơn
+    maxHeight: "80%", 
     minHeight: "50%",
   },
   sheetHeader: {

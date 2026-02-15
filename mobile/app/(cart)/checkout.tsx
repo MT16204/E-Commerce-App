@@ -37,7 +37,6 @@ const CheckoutScreen = () => {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [addressModalVisible, setAddressModalVisible] = useState(false);
 
-  // Vẫn giữ logic lấy address để gửi lên Stripe API
   const selectedAddress = useMemo(() => {
     return addresses?.find((addr) => addr.isDefault) || addresses?.[0] || null;
   }, [addresses]);
@@ -68,7 +67,6 @@ const CheckoutScreen = () => {
       );
       return;
     }
-    // Mở modal xác nhận địa chỉ trước khi thanh toán
     setAddressModalVisible(true);
   };
 
@@ -202,7 +200,6 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(12),
   },
 
-  // Order List Item
   itemCard: {
     flexDirection: "row",
     alignItems: "center",
