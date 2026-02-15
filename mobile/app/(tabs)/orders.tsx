@@ -14,13 +14,15 @@ import { useRouter } from "expo-router";
 
 import theme, { scale, verticalScale } from "@/theme";
 import SafeScreen from "@/components/SafeScreen";
+import { FocusAwareStatusBar } from "@/components/StatusBar";
+import RatingModal from "@/components/RatingModal";
+import LoadingState from "@/components/LoadingState";
+
 import { useOrders } from "@/hooks/useOrders";
 import { useReviews } from "@/hooks/useReviews";
 import { capitalizeFirstLetter, formatDate, getStatusColor } from "@/lib/utils";
 import { Order } from "@/types";
-import { FocusAwareStatusBar } from "@/components/StatusBar";
-import LoadingState from "@/components/LoadingState";
-import RatingModal from "@/components/RatingModal";
+import ScreenHeader from "@/components/ScreenHeader";
 
 const OrdersScreen = () => {
   const router = useRouter();
@@ -63,42 +65,36 @@ const OrdersScreen = () => {
           }),
         ),
       );
-      Alert.alert("Success", "Thank you for rating all products!");
+      Alert.alert("Success", "Thank you for your feedback!");
       setShowRatingModal(false);
-      setSelectedOrder(null);
     } catch (error: any) {
-      Alert.alert(
-        "Error",
-        error?.response?.data?.error || "Failed to submit rating",
-      );
+      Alert.alert("Error", "Failed to submit rating");
     }
   };
 
-  // 1. TRẠNG THÁI LOADING
   if (isLoading) {
     return (
-      <SafeScreen
-        style={{ flex: 1, backgroundColor: theme.colors.backgroundhome }}
-      >
+      <SafeScreen style={styles.container}>
+        <FocusAwareStatusBar style="dark" />
+        <ScreenHeader title="My Orders" />
         <LoadingState message="Fetching your orders..." />
       </SafeScreen>
     );
   }
 
-  // 2. TRẠNG THÁI LỖI
   if (isError) {
     return (
-      <SafeScreen
-        style={{ flex: 1, backgroundColor: theme.colors.backgroundhome }}
-      >
-        <View style={styles.centerContainer}>
-          <Feather name="alert-circle" size={60} color={theme.colors.primary} />
-          <Text style={styles.emptyTitle}>Failed to load orders</Text>
+      <SafeScreen style={styles.container}>
+        <FocusAwareStatusBar style="dark" />
+        <ScreenHeader title="My Orders" />
+        <View style={styles.emptyContainer}>
+          <Feather name="alert-circle" size={60} color={theme.colors.red} />
+          <Text style={styles.emptyTitle}>Oops! Something went wrong</Text>
           <TouchableOpacity
-            style={styles.browseButton}
-            onPress={() => router.replace("/(tabs)/home")}
+            style={styles.primaryBtn}
+            onPress={() => router.back()}
           >
-            <Text style={styles.browseButtonText}>Try Again</Text>
+            <Text style={styles.primaryBtnText}>Go Back</Text>
           </TouchableOpacity>
         </View>
       </SafeScreen>
@@ -106,33 +102,25 @@ const OrdersScreen = () => {
   }
 
   return (
-    <SafeScreen
-      style={{ flex: 1, backgroundColor: theme.colors.backgroundhome }}
-    >
+    <SafeScreen style={styles.container}>
       <FocusAwareStatusBar style="dark" />
 
-      {/* HEADER ĐỒNG BỘ PROFILE */}
-      <View style={styles.headerRow}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons
-            name="chevron-back"
-            size={24}
-            color={theme.colors.primary}
-          />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Orders</Text>
-      </View>
+      {/* HEADER */}
+      <ScreenHeader title="My Orders" count={orders?.length} unit="order" />
 
       {!orders || orders.length === 0 ? (
-        <View style={styles.centerContainer}>
+        <View style={styles.emptyContainer}>
           <Feather name="package" size={80} color={theme.colors.grayMedium} />
           <Text style={styles.emptyTitle}>No orders yet</Text>
           <Text style={styles.emptySubtitle}>
-            Your order history will appear here
+            You haven't placed any orders.
           </Text>
+          <TouchableOpacity
+            style={styles.primaryBtn}
+            onPress={() => router.push("/(tabs)/home")}
+          >
+            <Text style={styles.primaryBtnText}>Explore Shop</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <ScrollView
@@ -144,27 +132,29 @@ const OrdersScreen = () => {
               (sum, item) => sum + item.quantity,
               0,
             );
+            const statusColor = getStatusColor(order.status);
+
             return (
               <View key={order._id} style={styles.orderCard}>
-                <View style={styles.orderTopSection}>
-                  <View style={styles.imageContainer}>
+                <View style={styles.orderHeader}>
+                  <View style={styles.imageWrapper}>
                     <Image
                       source={order.orderItems[0]?.image}
-                      style={styles.orderThumb}
+                      style={styles.orderImage}
                       contentFit="cover"
                     />
                     {order.orderItems.length > 1 && (
-                      <View style={styles.badge}>
-                        <Text style={styles.badgeText}>
+                      <View style={styles.multiBadge}>
+                        <Text style={styles.multiBadgeText}>
                           +{order.orderItems.length - 1}
                         </Text>
                       </View>
                     )}
                   </View>
 
-                  <View style={styles.orderInfo}>
+                  <View style={styles.orderMainInfo}>
                     <Text style={styles.orderId}>
-                      Order #{order._id.slice(-8).toUpperCase()}
+                      ID: #{order._id.slice(-6).toUpperCase()}
                     </Text>
                     <Text style={styles.orderDate}>
                       {formatDate(order.createdAt)}
@@ -172,53 +162,50 @@ const OrdersScreen = () => {
                     <View
                       style={[
                         styles.statusBadge,
-                        {
-                          backgroundColor: getStatusColor(order.status) + "15",
-                        },
+                        { backgroundColor: statusColor + "15" },
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.statusText,
-                          { color: getStatusColor(order.status) },
-                        ]}
-                      >
+                      <Text style={[styles.statusText, { color: statusColor }]}>
                         {capitalizeFirstLetter(order.status)}
                       </Text>
                     </View>
                   </View>
-                </View>
-
-                <View style={styles.orderFooter}>
-                  <View>
-                    <Text style={styles.itemCountText}>{totalItems} items</Text>
-                    <Text style={styles.priceText}>
+                  <View style={styles.priceSection}>
+                    <Text style={styles.totalPrice}>
                       ${order.totalPrice.toFixed(2)}
                     </Text>
+                    <Text style={styles.itemQty}>{totalItems} items</Text>
                   </View>
-
-                  {order.status === "delivered" && (
-                    <TouchableOpacity
-                      style={[
-                        styles.actionBtn,
-                        order.hasReviewed && styles.disabledBtn,
-                      ]}
-                      onPress={() =>
-                        !order.hasReviewed && handleOpenRating(order)
-                      }
-                      disabled={order.hasReviewed}
-                    >
-                      <Text
-                        style={[
-                          styles.actionBtnText,
-                          order.hasReviewed && styles.disabledBtnText,
-                        ]}
-                      >
-                        {order.hasReviewed ? "Reviewed" : "Leave Rating"}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
                 </View>
+
+                {/* ACTION BUTTON */}
+                {order.status === "delivered" && (
+                  <View style={styles.footerAction}>
+                    {order.hasReviewed ? (
+                      <View style={styles.reviewedBadge}>
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={16}
+                          color={theme.colors.green}
+                        />
+                        <Text style={styles.reviewedText}>Reviewed</Text>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.rateBtn}
+                        onPress={() => handleOpenRating(order)}
+                        disabled={isCreatingReview}
+                      >
+                        <Ionicons
+                          name="star"
+                          size={16}
+                          color={theme.colors.white}
+                        />
+                        <Text style={styles.rateBtnText}>Rate Experience</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
               </View>
             );
           })}
@@ -241,12 +228,13 @@ const OrdersScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.colors.backgroundhome },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: scale(20),
     marginTop: verticalScale(10),
-    marginBottom: verticalScale(15),
+    marginBottom: verticalScale(10),
   },
   backButton: { padding: 5, marginRight: scale(10) },
   headerTitle: {
@@ -254,54 +242,54 @@ const styles = StyleSheet.create({
     fontFamily: theme.fonts.semiBold,
     color: theme.colors.heading,
   },
+  itemCount: {
+    marginLeft: "auto",
+    fontSize: 14,
+    fontFamily: theme.fonts.regular,
+    color: theme.colors.textSecondary,
+  },
   scrollContent: {
     paddingHorizontal: scale(20),
     paddingBottom: verticalScale(30),
   },
   orderCard: {
     backgroundColor: theme.colors.white,
-    borderRadius: scale(24),
-    padding: scale(20),
+    borderRadius: scale(20),
+    padding: scale(16),
     marginBottom: verticalScale(15),
-    elevation: 2,
-    shadowColor: theme.colors.black,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  orderTopSection: { flexDirection: "row", marginBottom: verticalScale(15) },
-  imageContainer: { position: "relative" },
-  orderThumb: {
-    width: scale(75),
-    height: scale(75),
-    borderRadius: scale(15),
+  orderHeader: { flexDirection: "row", alignItems: "center" },
+  imageWrapper: { position: "relative" },
+  orderImage: {
+    width: scale(70),
+    height: scale(70),
+    borderRadius: scale(12),
     backgroundColor: theme.colors.surface,
   },
-  badge: {
+  multiBadge: {
     position: "absolute",
     bottom: -5,
     right: -5,
     backgroundColor: theme.colors.primary,
-    width: scale(24),
-    height: scale(24),
-    borderRadius: scale(12),
-    alignItems: "center",
-    justifyContent: "center",
+    borderRadius: scale(10),
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderWidth: 2,
     borderColor: theme.colors.white,
   },
-  badgeText: {
+  multiBadgeText: {
     color: theme.colors.white,
     fontSize: 10,
     fontFamily: theme.fonts.bold,
   },
-  orderInfo: {
-    flex: 1,
-    marginLeft: scale(15),
-    justifyContent: "center",
-  },
+  orderMainInfo: { flex: 1, marginLeft: scale(15) },
   orderId: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: theme.fonts.bold,
     color: theme.colors.black,
   },
@@ -309,51 +297,56 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: theme.fonts.regular,
     color: theme.colors.textSecondary,
-    marginVertical: 4,
+    marginTop: 2,
   },
   statusBadge: {
     alignSelf: "flex-start",
-    paddingHorizontal: scale(12),
-    paddingVertical: verticalScale(4),
-    borderRadius: scale(8),
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    marginTop: 6,
   },
   statusText: { fontSize: 11, fontFamily: theme.fonts.bold },
-  orderFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: verticalScale(15),
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.surface,
-  },
-  itemCountText: {
-    fontSize: 12,
-    fontFamily: theme.fonts.regular,
-    color: theme.colors.textSecondary,
-  },
-  priceText: {
-    fontSize: 20,
+  priceSection: { alignItems: "flex-end" },
+  totalPrice: {
+    fontSize: 18,
     fontFamily: theme.fonts.bold,
     color: theme.colors.primary,
   },
-  actionBtn: {
+  itemQty: { fontSize: 12, color: theme.colors.textSecondary, marginTop: 2 },
+  footerAction: {
+    marginTop: scale(15),
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.surface,
+    paddingTop: scale(12),
+  },
+  reviewedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+  },
+  reviewedText: {
+    marginLeft: 6,
+    color: theme.colors.green,
+    fontFamily: theme.fonts.medium,
+    fontSize: 13,
+  },
+  rateBtn: {
     backgroundColor: theme.colors.primary,
-    paddingHorizontal: scale(18),
-    paddingVertical: verticalScale(10),
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
     borderRadius: scale(12),
   },
-  actionBtnText: {
+  rateBtnText: {
     color: theme.colors.white,
+    marginLeft: 8,
     fontFamily: theme.fonts.bold,
     fontSize: 13,
   },
-  disabledBtn: {
-    backgroundColor: theme.colors.surface,
-  },
-  disabledBtnText: {
-    color: theme.colors.grayMedium,
-  },
-  centerContainer: {
+  emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -362,27 +355,23 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontFamily: theme.fonts.bold,
-    color: theme.colors.black,
     marginTop: verticalScale(20),
+    color: theme.colors.black,
   },
   emptySubtitle: {
     fontSize: 14,
-    fontFamily: theme.fonts.regular,
     color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 8,
   },
-  browseButton: {
+  primaryBtn: {
     backgroundColor: theme.colors.primary,
-    paddingHorizontal: scale(30),
-    paddingVertical: verticalScale(15),
-    borderRadius: scale(15),
-    marginTop: verticalScale(25),
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 15,
+    marginTop: 25,
   },
-  browseButtonText: {
-    color: theme.colors.white,
-    fontFamily: theme.fonts.bold,
-  },
+  primaryBtnText: { color: theme.colors.white, fontFamily: theme.fonts.bold },
 });
 
 export default OrdersScreen;

@@ -1,7 +1,4 @@
-import SafeScreen from "@/components/SafeScreen";
-import { useAddresses } from "@/hooks/useAddressess";
-import useCart from "@/hooks/useCart";
-import { useApi } from "@/lib/api";
+import React, { useState, useMemo } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -9,43 +6,75 @@ import {
   Text,
   TouchableOpacity,
   View,
+  StyleSheet,
 } from "react-native";
-import { useStripe } from "@stripe/stripe-react-native";
-import { useState } from "react";
-import { Address } from "@/types";
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import OrderSummary from "@/components/OrderSummary";
-import AddressSelectionModal from "@/components/AddressSelectionModal";
-
+import { Ionicons, Feather } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useStripe } from "@stripe/stripe-react-native";
 import * as Sentry from "@sentry/react-native";
 
+import theme, { scale, verticalScale } from "@/theme";
+import SafeScreen from "@/components/SafeScreen";
+import { FocusAwareStatusBar } from "@/components/StatusBar";
+import AddressSelectionModal from "@/components/AddressSelectionModal";
+import LoadingState from "@/components/LoadingState";
+import ScreenHeader from "@/components/ScreenHeader";
+
+import useCart from "@/hooks/useCart";
+import { useAddresses } from "@/hooks/useAddressess";
+import { useApi } from "@/lib/api";
+import { Address } from "@/types";
+
 const CartScreen = () => {
+  const router = useRouter();
   const api = useApi();
   const {
     cart,
     cartItemCount,
-    cartTotal,
-    clearCart,
     isError,
     isLoading,
     isRemoving,
     isUpdating,
     removeFromCart,
     updateQuantity,
+    clearCart,
   } = useCart();
-  const { addresses } = useAddresses();
 
+  const { addresses } = useAddresses();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [addressModalVisible, setAddressModalVisible] = useState(false);
 
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const cartItems = cart?.items || [];
-  const subtotal = cartTotal;
-  const shipping = 10.0;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+
+  const toggleSelectItem = (productId: string) => {
+    setSelectedItems((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId],
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedItems.length === cartItems.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(cartItems.map((item) => item.product._id));
+    }
+  };
+
+  const selectedSubtotal = useMemo(() => {
+    return cartItems
+      .filter((item) => selectedItems.includes(item.product._id))
+      .reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  }, [cartItems, selectedItems]);
+
+  const shipping = selectedItems.length > 0 ? 10.0 : 0;
+  const tax = selectedSubtotal * 0.08;
+  const total = selectedSubtotal + shipping + tax;
 
   const handleQuantityChange = (
     productId: string,
@@ -69,250 +98,275 @@ const CartScreen = () => {
   };
 
   const handleCheckout = () => {
-    if (cartItems.length === 0 || paymentLoading) return;
-
-    if (!addresses || addresses.length === 0) {
-      Alert.alert(
-        "No Address",
-        "Please add a shipping address in your profile before checking out.",
-        [{ text: "OK" }],
-      );
+    if (selectedItems.length === 0) {
+      Alert.alert("No Selection", "Please select items to checkout.");
       return;
     }
-
-    setAddressModalVisible(true);
+    router.push({
+      pathname: "/checkout",
+      params: { selectedIds: JSON.stringify(selectedItems) },
+    });
   };
 
   const handleProceedWithPayment = async (selectedAddress: Address) => {
-    // 1. NGĂN CHẶN CLICK NHIỀU LẦN (Sửa lỗi Resolve twice)
     if (paymentLoading) return;
-
     setAddressModalVisible(false);
     setPaymentLoading(true);
 
-    Sentry.logger.info("Checkout initiated", {
-      itemCount: cartItemCount,
-      total: total.toFixed(2),
-      city: selectedAddress.city,
-    });
-
     try {
-      // 2. Tạo Payment Intent từ Backend
+      const itemsToPay = cartItems.filter((item) =>
+        selectedItems.includes(item.product._id),
+      );
+
       const { data } = await api.post("/payment/create-intent", {
-        cartItems,
-        shippingAddress: {
-          fullName: selectedAddress.fullName,
-          streetAddress: selectedAddress.streetAddress,
-          city: selectedAddress.city,
-          state: selectedAddress.state,
-          zipCode: selectedAddress.zipCode,
-          phoneNumber: selectedAddress.phoneNumber,
-        },
+        cartItems: itemsToPay,
+        shippingAddress: selectedAddress,
       });
 
-      // 3. Khởi tạo Payment Sheet với màu Figma #5D76FF
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: data.clientSecret,
         merchantDisplayName: "Nova Store",
         appearance: {
           colors: {
-            primary: "#5D76FF",
-            background: "#FFFFFF",
-            componentBackground: "#F4F4F4",
-            primaryText: "#000000",
-            secondaryText: "#999999",
-            placeholderText: "#ABABAB",
-            icon: "#5D76FF",
+            primary: theme.colors.primary,
+            background: theme.colors.white,
+            componentBackground: theme.colors.surface,
           },
-          shapes: {
-            borderRadius: 16,
-          },
+          shapes: { borderRadius: 16 },
         },
       });
 
-      if (initError) {
-        throw initError;
-      }
+      if (initError) throw initError;
 
-      // 4. Hiển thị giao diện thanh toán
       const { error: presentError } = await presentPaymentSheet();
-
       if (presentError) {
-        // Chỉ Alert nếu không phải lỗi do người dùng chủ động thoát (Canceled)
-        if (presentError.code !== "Canceled") {
+        if (presentError.code !== "Canceled")
           Alert.alert("Error", presentError.message);
-        }
-        Sentry.logger.info("Payment not completed", {
-          code: presentError.code,
-        });
       } else {
-        // THANH TOÁN THÀNH CÔNG
-        Sentry.logger.info("Payment successful", { total: total.toFixed(2) });
-
-        Alert.alert(
-          "Success",
-          "Your payment was successful! Your order is being processed.",
-          [{ text: "OK", onPress: () => clearCart() }],
-        );
+        Alert.alert("Success", "Payment successful!", [
+          { text: "OK", onPress: () => clearCart() },
+        ]);
       }
     } catch (error: any) {
-      Sentry.logger.error("Payment flow failed", {
-        error: error?.message || "Unknown error",
-      });
-      Alert.alert("Error", error?.message || "Failed to process payment");
+      Sentry.captureException(error);
+      Alert.alert("Error", error.message || "Payment failed");
     } finally {
-      // 5. GIẢI PHÓNG TRẠNG THÁI LOADING
       setPaymentLoading(false);
     }
   };
 
-  if (isLoading) return <LoadingUI />;
-  if (isError) return <ErrorUI />;
-  if (cartItems.length === 0) return <EmptyUI />;
+  if (isLoading) {
+    return (
+      <SafeScreen style={styles.container}>
+        <FocusAwareStatusBar style="dark" />
+        <ScreenHeader title="Cart" count={cartItemCount} />
+        <LoadingState message="Updating your cart..." />
+      </SafeScreen>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeScreen style={styles.container}>
+        <FocusAwareStatusBar style="dark" />
+        <View style={styles.emptyContainer}>
+          <Feather name="alert-triangle" size={60} color={theme.colors.red} />
+          <Text style={styles.emptyTitle}>Failed to load cart!</Text>
+        </View>
+      </SafeScreen>
+    );
+  }
 
   return (
-    <SafeScreen>
-      <Text className="px-6 pb-5 text-text-primary text-3xl font-bold tracking-tight">
-        Cart
-      </Text>
+    <SafeScreen style={styles.container}>
+      <FocusAwareStatusBar style="dark" />
+      <ScreenHeader title="My Cart" />
 
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 240 }}
-      >
-        <View className="px-6 gap-2">
-          {cartItems.map((item) => (
-            <View
-              key={item._id}
-              className="bg-surface rounded-3xl overflow-hidden"
+      {cartItems.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Feather
+            name="shopping-cart"
+            size={80}
+            color={theme.colors.grayMedium}
+          />
+          <Text style={styles.emptyTitle}>Your cart is empty</Text>
+          <TouchableOpacity
+            style={styles.browseButton}
+            onPress={() => router.push("/(tabs)/home")}
+          >
+            <Text style={styles.browseButtonText}>Start Shopping</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={{ flex: 1 }}>
+          {/* THANH SELECT ALL DỰA TRÊN MÀU SẮC CART(2) */}
+          <View style={styles.selectAllBar}>
+            <TouchableOpacity
+              style={styles.checkAllBtn}
+              onPress={toggleSelectAll}
             >
-              <View className="p-4 flex-row">
-                <View className="relative">
-                  <Image
-                    source={item.product.images[0]}
-                    className="bg-background-lighter"
-                    contentFit="cover"
-                    style={{ width: 112, height: 112, borderRadius: 16 }}
-                  />
-                  <View className="absolute top-2 right-2 bg-primary rounded-full px-2 py-0.5">
-                    <Text className="text-background text-xs font-bold">
-                      ×{item.quantity}
-                    </Text>
-                  </View>
-                </View>
+              <Ionicons
+                name={
+                  selectedItems.length === cartItems.length &&
+                  cartItems.length > 0
+                    ? "checkmark-circle"
+                    : "ellipse-outline"
+                }
+                size={22}
+                color={
+                  selectedItems.length === cartItems.length
+                    ? theme.colors.primary
+                    : theme.colors.grayMedium
+                }
+              />
+              <Text style={styles.selectAllText}>
+                Select All ({cartItems.length})
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-                <View className="flex-1 ml-4 justify-between">
-                  <View>
-                    <Text
-                      className="text-text-primary font-bold text-lg leading-tight"
-                      numberOfLines={2}
-                    >
-                      {item.product.name}
-                    </Text>
-                    <View className="flex-row items-center mt-2">
-                      <Text className="text-primary font-bold text-2xl">
-                        ${(item.product.price * item.quantity).toFixed(2)}
-                      </Text>
-                      <Text className="text-text-secondary text-sm ml-2">
-                        ${item.product.price.toFixed(2)}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View className="flex-row items-center mt-3">
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {cartItems.map((item) => {
+              const isSelected = selectedItems.includes(item.product._id);
+              return (
+                <View key={item._id} style={styles.productCard}>
+                  <View style={styles.cardInfo}>
                     <TouchableOpacity
-                      className="bg-background-lighter rounded-full w-9 h-9 items-center justify-center"
-                      onPress={() =>
-                        handleQuantityChange(
-                          item.product._id,
-                          item.quantity,
-                          -1,
-                        )
-                      }
-                      disabled={isUpdating}
-                    >
-                      <Ionicons name="remove" size={18} color="#FFFFFF" />
-                    </TouchableOpacity>
-
-                    <View className="mx-4 min-w-[32px] items-center">
-                      <Text className="text-text-primary font-bold text-lg">
-                        {item.quantity}
-                      </Text>
-                    </View>
-
-                    <TouchableOpacity
-                      className="bg-primary rounded-full w-9 h-9 items-center justify-center"
-                      onPress={() =>
-                        handleQuantityChange(item.product._id, item.quantity, 1)
-                      }
-                      disabled={isUpdating}
-                    >
-                      <Ionicons name="add" size={18} color="#121212" />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      className="ml-auto bg-red-500/10 rounded-full w-9 h-9 items-center justify-center"
-                      onPress={() =>
-                        handleRemoveItem(item.product._id, item.product.name)
-                      }
-                      disabled={isRemoving}
+                      style={styles.itemCheckbox}
+                      onPress={() => toggleSelectItem(item.product._id)}
                     >
                       <Ionicons
-                        name="trash-outline"
-                        size={18}
-                        color="#EF4444"
+                        name={
+                          isSelected ? "checkmark-circle" : "ellipse-outline"
+                        }
+                        size={24}
+                        color={
+                          isSelected
+                            ? theme.colors.primary
+                            : theme.colors.grayMedium
+                        }
                       />
                     </TouchableOpacity>
+
+                    <View style={styles.imageContainer}>
+                      <Image
+                        source={item.product.images[0]}
+                        style={styles.productImage}
+                        contentFit="cover"
+                      />
+                    </View>
+
+                    <View style={styles.textContainer}>
+                      <Text style={styles.productName} numberOfLines={1}>
+                        {item.product.name}
+                      </Text>
+                      <Text style={styles.productPrice}>
+                        ${(item.product.price * item.quantity).toFixed(2)}
+                      </Text>
+
+                      <View style={styles.controlsRow}>
+                        <View style={styles.quantitySelector}>
+                          <TouchableOpacity
+                            style={styles.qtyBtn}
+                            onPress={() =>
+                              handleQuantityChange(
+                                item.product._id,
+                                item.quantity,
+                                -1,
+                              )
+                            }
+                            disabled={isUpdating}
+                          >
+                            <Ionicons
+                              name="remove"
+                              size={16}
+                              color={theme.colors.heading}
+                            />
+                          </TouchableOpacity>
+                          <Text style={styles.qtyText}>{item.quantity}</Text>
+                          <TouchableOpacity
+                            style={[
+                              styles.qtyBtn,
+                              { backgroundColor: theme.colors.primary },
+                            ]}
+                            onPress={() =>
+                              handleQuantityChange(
+                                item.product._id,
+                                item.quantity,
+                                1,
+                              )
+                            }
+                            disabled={isUpdating}
+                          >
+                            <Ionicons
+                              name="add"
+                              size={16}
+                              color={theme.colors.white}
+                            />
+                          </TouchableOpacity>
+                        </View>
+
+                        <TouchableOpacity
+                          style={styles.removeIconBtn}
+                          onPress={() =>
+                            handleRemoveItem(
+                              item.product._id,
+                              item.product.name,
+                            )
+                          }
+                          disabled={isRemoving}
+                        >
+                          <Feather
+                            name="trash-2"
+                            size={18}
+                            color={theme.colors.red}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
                   </View>
                 </View>
-              </View>
+              );
+            })}
+          </ScrollView>
+
+          {/* CHECKOUT FOOTER GIỮ NGUYÊN STYLE CART(2) */}
+          <View style={styles.footer}>
+            <View style={styles.footerRow}>
+              <Text style={styles.totalLabel}>
+                Total Price ({selectedItems.length} items)
+              </Text>
+              <Text style={styles.totalAmount}>${total.toFixed(2)}</Text>
             </View>
-          ))}
-        </View>
-
-        <OrderSummary
-          subtotal={subtotal}
-          shipping={shipping}
-          tax={tax}
-          total={total}
-        />
-      </ScrollView>
-
-      {/* Checkout Panel */}
-      <View className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-surface pt-4 pb-32 px-6">
-        <View className="flex-row items-center justify-between mb-4">
-          <View className="flex-row items-center">
-            <Ionicons name="cart" size={20} color="#5D76FF" />
-            <Text className="text-text-secondary ml-2">
-              {cartItemCount} {cartItemCount === 1 ? "item" : "items"}
-            </Text>
+            <TouchableOpacity
+              style={[
+                styles.checkoutBtn,
+                (selectedItems.length === 0 || paymentLoading) && {
+                  backgroundColor: theme.colors.grayMedium,
+                },
+              ]}
+              onPress={handleCheckout}
+              disabled={selectedItems.length === 0 || paymentLoading}
+            >
+              {paymentLoading ? (
+                <ActivityIndicator color={theme.colors.white} />
+              ) : (
+                <>
+                  <Text style={styles.checkoutText}>Proceed to Checkout</Text>
+                  <Ionicons
+                    name="arrow-forward"
+                    size={20}
+                    color={theme.colors.white}
+                  />
+                </>
+              )}
+            </TouchableOpacity>
           </View>
-          <Text className="text-text-primary font-bold text-xl">
-            ${total.toFixed(2)}
-          </Text>
         </View>
-
-        <TouchableOpacity
-          className={`${paymentLoading ? "bg-gray-400" : "bg-primary"} rounded-2xl overflow-hidden`}
-          activeOpacity={0.9}
-          onPress={handleCheckout}
-          disabled={paymentLoading}
-        >
-          <View className="py-5 flex-row items-center justify-center">
-            {paymentLoading ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <>
-                <Text className="text-background font-bold text-lg mr-2">
-                  Checkout
-                </Text>
-                <Ionicons name="arrow-forward" size={20} color="#121212" />
-              </>
-            )}
-          </View>
-        </TouchableOpacity>
-      </View>
+      )}
 
       <AddressSelectionModal
         visible={addressModalVisible}
@@ -324,42 +378,147 @@ const CartScreen = () => {
   );
 };
 
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.colors.backgroundhome },
+  selectAllBar: {
+    paddingHorizontal: scale(20),
+    paddingBottom: verticalScale(10),
+  },
+  checkAllBtn: { flexDirection: "row", alignItems: "center", gap: 8 },
+  selectAllText: {
+    fontSize: 14,
+    fontFamily: theme.fonts.medium,
+    color: theme.colors.heading,
+  },
+  scrollContent: {
+    paddingHorizontal: scale(20),
+    paddingBottom: verticalScale(160),
+  },
+  productCard: {
+    backgroundColor: theme.colors.white,
+    borderRadius: scale(20),
+    padding: scale(12),
+    marginBottom: verticalScale(12),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  cardInfo: { flexDirection: "row", alignItems: "center" },
+  itemCheckbox: { paddingRight: scale(10) },
+  imageContainer: { position: "relative" },
+  productImage: {
+    width: scale(90),
+    height: scale(90),
+    borderRadius: scale(15),
+    backgroundColor: theme.colors.surface,
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: scale(15),
+    justifyContent: "space-between",
+  },
+  productName: {
+    fontSize: 16,
+    fontFamily: theme.fonts.bold,
+    color: theme.colors.heading,
+  },
+  productPrice: {
+    fontSize: 18,
+    fontFamily: theme.fonts.bold,
+    color: theme.colors.primary,
+    marginTop: 2,
+  },
+  controlsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+  quantitySelector: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    padding: 4,
+  },
+  qtyBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: theme.colors.white,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  qtyText: { marginHorizontal: 12, fontFamily: theme.fonts.bold, fontSize: 14 },
+  removeIconBtn: { padding: 8 },
+  footer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: theme.colors.white,
+    paddingHorizontal: scale(20),
+    paddingTop: verticalScale(15),
+    paddingBottom: verticalScale(15),
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  footerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 15,
+  },
+  totalLabel: {
+    fontSize: 14,
+    fontFamily: theme.fonts.regular,
+    color: theme.colors.textSecondary,
+  },
+  totalAmount: {
+    fontSize: 20,
+    fontFamily: theme.fonts.bold,
+    color: theme.colors.heading,
+  },
+  checkoutBtn: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: 18,
+    flexDirection: "row",
+    height: verticalScale(55),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkoutText: {
+    color: theme.colors.white,
+    fontFamily: theme.fonts.bold,
+    fontSize: 16,
+    marginRight: 8,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: scale(40),
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontFamily: theme.fonts.bold,
+    marginTop: 20,
+    color: theme.colors.heading,
+  },
+  browseButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 15,
+    marginTop: 25,
+  },
+  browseButtonText: { color: "#FFF", fontFamily: theme.fonts.bold },
+});
+
 export default CartScreen;
-
-function LoadingUI() {
-  return (
-    <View className="flex-1 bg-background items-center justify-center">
-      <ActivityIndicator size="large" color="#5D76FF" />
-      <Text className="text-text-secondary mt-4">Loading cart...</Text>
-    </View>
-  );
-}
-
-function ErrorUI() {
-  return (
-    <View className="flex-1 bg-background items-center justify-center px-6">
-      <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-      <Text className="text-text-primary font-semibold text-xl mt-4">
-        Failed to load cart
-      </Text>
-    </View>
-  );
-}
-
-function EmptyUI() {
-  return (
-    <View className="flex-1 bg-background">
-      <View className="px-6 pt-16 pb-5">
-        <Text className="text-text-primary text-3xl font-bold tracking-tight">
-          Cart
-        </Text>
-      </View>
-      <View className="flex-1 items-center justify-center px-6">
-        <Ionicons name="cart-outline" size={80} color="#ABABAB" />
-        <Text className="text-text-primary font-semibold text-xl mt-4">
-          Your cart is empty
-        </Text>
-      </View>
-    </View>
-  );
-}

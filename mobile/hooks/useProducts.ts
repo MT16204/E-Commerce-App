@@ -12,11 +12,10 @@ const useProducts = () => {
         const { data } = await api.get<Product[]>("/products");
         return data;
       } catch (error: any) {
-        // Log chi tiết lỗi ra Terminal
         console.error("--- API PRODUCTS ERRORS:", {
           message: error.message,
-          status: error.response?.status, // 404, 500, etc.
-          data: error.response?.data, // Nội dung lỗi từ server
+          status: error.response?.status, 
+          data: error.response?.data, 
         });
         throw error;
       }

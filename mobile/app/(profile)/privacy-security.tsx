@@ -13,11 +13,12 @@ import { useRouter } from "expo-router";
 import theme, { scale, verticalScale } from "@/theme";
 import SafeScreen from "@/components/SafeScreen";
 import { FocusAwareStatusBar } from "@/components/StatusBar";
+import ScreenHeader from "@/components/ScreenHeader";
 
 type SecurityOption = {
   id: string;
   icon: keyof typeof Ionicons.glyphMap;
-  title: string; 
+  title: string;
   description: string;
   type: "navigation" | "toggle";
   value?: boolean;
@@ -151,7 +152,7 @@ const PrivacyAndSecurityScreen = () => {
           <Ionicons
             name="chevron-forward"
             size={scale(20)}
-            color={theme.colors.grayMedium}
+            color={theme.colors.primary}
           />
         )}
       </View>
@@ -163,21 +164,7 @@ const PrivacyAndSecurityScreen = () => {
       style={{ flex: 1, backgroundColor: theme.colors.backgroundhome }}
     >
       <FocusAwareStatusBar style="dark" />
-
-      <View style={styles.headerRow}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons
-            name="chevron-back"
-            size={24}
-            color={theme.colors.primary}
-          />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Privacy & Security</Text>
-      </View>
-
+      <ScreenHeader title="Privacy & Security" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -193,9 +180,7 @@ const PrivacyAndSecurityScreen = () => {
           activeOpacity={0.7}
         >
           <View style={styles.cardContent}>
-            <View
-              style={[styles.iconContainer]}
-            >
+            <View style={[styles.iconContainer]}>
               <Feather
                 name="trash-2"
                 size={scale(22)}
@@ -235,22 +220,6 @@ const PrivacyAndSecurityScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: scale(20),
-    marginTop: verticalScale(10),
-    marginBottom: verticalScale(10),
-  },
-  backButton: {
-    padding: 5,
-    marginRight: scale(10),
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontFamily: theme.fonts.semiBold,
-    color: theme.colors.heading,
-  },
   scrollContent: {
     paddingHorizontal: scale(20),
     paddingBottom: verticalScale(40),

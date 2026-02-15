@@ -13,7 +13,8 @@ import { Image } from "expo-image";
 import theme, { scale, verticalScale } from "@/theme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const CARD_WIDTH = SCREEN_WIDTH - scale(32); 
+// Đảm bảo CARD_WIDTH khớp với padding của contentBody ở HomeScreen
+const CARD_WIDTH = SCREEN_WIDTH - scale(32);
 
 const PROMOS = [
   {
@@ -53,7 +54,6 @@ const PromoCarousel: React.FC = () => {
     });
   };
 
-  // Tự động chạy
   useEffect(() => {
     const timer = setInterval(() => {
       const nextIndex = (currentIndex + 1) % PROMOS.length;
@@ -70,12 +70,14 @@ const PromoCarousel: React.FC = () => {
 
   const renderItem = ({ item }: { item: (typeof PROMOS)[0] }) => (
     <View style={[styles.card, { width: CARD_WIDTH }]}>
-      {/* Text Side */}
+      {/* Text Side - Dùng flex để ép text phải wrap trong không gian còn lại */}
       <View style={styles.textSide}>
-        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.title} numberOfLines={2}>
+          {item.title}
+        </Text>
         <Text style={styles.desc}>{item.desc}</Text>
 
-        {/* Indicators */}
+        {/* Indicators nằm gọn dưới text */}
         <View style={styles.indicatorContainer}>
           {PROMOS.map((_, index) => (
             <TouchableOpacity key={index} onPress={() => scrollTo(index)}>
@@ -85,7 +87,7 @@ const PromoCarousel: React.FC = () => {
                   index === currentIndex ? styles.dotLong : styles.dotSmall,
                   {
                     backgroundColor:
-                      index === currentIndex ? theme.colors.primary : theme.colors.grayLight,
+                      index === currentIndex ? theme.colors.primary : "#B2B2B2", // Dùng màu B2B2B2 từ palette của bạn
                   },
                 ]}
               />
@@ -99,7 +101,7 @@ const PromoCarousel: React.FC = () => {
         <Image
           source={item.image}
           style={styles.promoImg}
-          contentFit="contain"
+          contentFit="cover" // Đổi sang cover để ảnh tràn đẹp hơn như thiết kế
         />
       </View>
     </View>
@@ -113,7 +115,7 @@ const PromoCarousel: React.FC = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         horizontal
-        pagingEnabled 
+        pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={onMomentumScrollEnd}
         snapToInterval={CARD_WIDTH}
@@ -128,57 +130,58 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(25),
   },
   card: {
-    backgroundColor: theme.colors.surfaceVariant,
+    backgroundColor: theme.colors.surface,
     borderRadius: scale(32),
     height: verticalScale(165),
     flexDirection: "row",
-    paddingLeft: scale(25),
     overflow: "hidden",
     alignItems: "center",
   },
   textSide: {
-    flex: 1.4,
+    flex: 1, 
+    paddingLeft: scale(25),
+    paddingRight: scale(10), 
     justifyContent: "center",
+    zIndex: 10,
   },
   imageSide: {
-    flex: 1,
+    flex: 1, 
     height: "100%",
-    justifyContent: "flex-end",
-    alignItems: "flex-end",
   },
   title: {
-    fontSize: theme.fontSize.FONT_20Px,
-    fontFamily: theme.fonts.semiBold,
-    color: theme.colors.textPrimary,
-    marginBottom: verticalScale(10),
+    fontSize: theme.fontSize.FONT_22Px,
+    fontFamily: theme.fonts.bold,
+    color: theme.colors.black,
+    marginBottom: verticalScale(8),
   },
   desc: {
     fontSize: theme.fontSize.FONT_12Px,
     fontFamily: theme.fonts.regular,
     color: theme.colors.textSecondary,
-    // lineHeight: 20,
-    // width: "90%",
+    lineHeight: 18,
   },
   promoImg: {
-    width: scale(180),
-    height: "150%",
-    position: "absolute",
-    right: -scale(15),
-    bottom: -verticalScale(50),
+    width: "100%",
+    height: "100%",
+    position: 'absolute',
+    right: -scale(5),
   },
   indicatorContainer: {
     flexDirection: "row",
-    marginTop: verticalScale(18),
+    marginTop: verticalScale(20),
     alignItems: "center",
-    alignSelf: "flex-start",
   },
   dot: {
-    height: 5,
-    borderRadius: 5,
+    height: 4,
+    borderRadius: 2,
     marginRight: 6,
   },
-  dotLong: { width: scale(24) },
-  dotSmall: { width: 6 },
+  dotLong: {
+    width: scale(22),
+  },
+  dotSmall: {
+    width: scale(4),
+  },
 });
 
 export default PromoCarousel;

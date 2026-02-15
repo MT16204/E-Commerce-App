@@ -109,7 +109,6 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Để StatusBar translucent để ảnh nền tràn lên đỉnh */}
       <StatusBar
         barStyle="light-content"
         translucent
@@ -228,7 +227,7 @@ const HomeScreen = () => {
 
         {/* PROMO & PRODUCTS SECTION */}
         <View style={styles.contentBody}>
-            <PromoCarousel />
+          <PromoCarousel />
 
           <View style={styles.listHeader}>
             <Text style={styles.listTitle}>Most Popular</Text>
@@ -243,7 +242,11 @@ const HomeScreen = () => {
             </View>
           ) : isError ? (
             <View style={styles.statusContainer}>
-              <Ionicons name="alert-circle-outline" size={48} color={theme.colors.red} />
+              <Ionicons
+                name="alert-circle-outline"
+                size={48}
+                color={theme.colors.red}
+              />
               <Text style={[styles.statusText, { color: theme.colors.red }]}>
                 Something went wrong!
               </Text>
@@ -270,7 +273,7 @@ const styles = StyleSheet.create({
   },
   headerImageBg: {
     width: "100%",
-    minHeight: verticalScale(300), 
+    minHeight: verticalScale(300),
   },
   headerImageStyle: {
     borderBottomLeftRadius: scale(32),
@@ -326,14 +329,15 @@ const styles = StyleSheet.create({
   },
   catList: {
     paddingBottom: verticalScale(20),
+    paddingRight: scale(15),
   },
   catItem: {
     alignItems: "center",
-    marginRight: scale(15),
+    width: scale(65),
   },
   catIconCircle: {
-    width: scale(54),
-    height: scale(54),
+    width: scale(50),
+    height: scale(50),
     borderRadius: scale(27),
     backgroundColor: theme.colors.white,
     justifyContent: "center",
@@ -349,57 +353,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(16),
     marginTop: verticalScale(20),
   },
-  // promoCard: {
-  //   backgroundColor: theme.colors.surface,
-  //   borderRadius: scale(32),
-  //   flexDirection: "row",
-  //   height: verticalScale(160),
-  //   padding: scale(20),
-  //   alignItems: "center",
-  //   overflow: "hidden",
-  //   marginBottom: verticalScale(25),
-  // },
-  // promoTextSide: {
-  //   flex: 1.2,
-  //   zIndex: 2,
-  // },
-  // promoHeading: {
-  //   fontSize: theme.fontSize.FONT_24Px,
-  //   fontFamily: theme.fonts.bold,
-  //   color: theme.colors.black,
-  //   marginBottom: verticalScale(5),
-  // },
-  // promoDesc: {
-  //   fontSize: theme.fontSize.FONT_12Px,
-  //   fontFamily: theme.fonts.regular,
-  //   color: theme.colors.black,
-  //   lineHeight: 16,
-  // },
-  // promoImg: {
-  //   width: scale(160),
-  //   height: "120%",
-  //   position: "absolute",
-  //   right: -scale(10),
-  //   top: 0,
-  // },
-  // pageIndicator: {
-  //   flexDirection: "row",
-  //   marginTop: verticalScale(15),
-  //   alignItems: "center",
-  // },
-  // dotLong: {
-  //   width: scale(24),
-  //   height: 4,
-  //   borderRadius: 4,
-  //   backgroundColor: theme.colors.primary,
-  //   marginRight: 4,
-  // },
-  // dotSmall: {
-  //   width: 4,
-  //   height: 4,
-  //   borderRadius: 2,
-  //   marginRight: 4,
-  // },
   listHeader: {
     flexDirection: "row",
     justifyContent: "space-between",

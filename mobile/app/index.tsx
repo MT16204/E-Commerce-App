@@ -43,7 +43,7 @@ export default function Index() {
       }
 
       if (!isSignedIn) {
-        router.replace("/welcome");
+        router.replace("/onboarding");
         return;
       }
 

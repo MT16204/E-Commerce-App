@@ -54,7 +54,7 @@ const TabsLayout = () => {
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="home" size={24} color={color} />
+            <Ionicons name="home" size={24} color={color} />
           ),
         }}
       />
@@ -64,7 +64,7 @@ const TabsLayout = () => {
         options={{
           title: "Orders",
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="truck-fast" size={24} color={color} />
+            <Ionicons name="bag-handle" size={24} color={color} />
           ),
         }}
       />
@@ -74,7 +74,7 @@ const TabsLayout = () => {
         options={{
           title: "Cart",
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="cart" size={24} color={color} />
+            <Ionicons name="cart" size={24} color={color} />
           ),
         }}
       />
@@ -84,7 +84,7 @@ const TabsLayout = () => {
         options={{
           title: "Wishlist",
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="heart" size={24} color={color} />
+            <Ionicons name="heart" size={24} color={color} />
           ),
         }}
       />
