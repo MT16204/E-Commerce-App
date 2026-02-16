@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,16 +8,20 @@ import {
   ImageBackground,
   StyleSheet,
   StatusBar,
-  FlatList,
+  Alert,
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons, Octicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import theme, { scale, verticalScale } from "@/theme";
 import SafeScreen from "@/components/SafeScreen";
 import ProductsGrid from "@/components/ProductsGrid";
 import useProducts from "@/hooks/useProducts";
+import useCart from "@/hooks/useCart";
+import useWishlist from "@/hooks/useWishlist";
 import LoadingState from "@/components/LoadingState";
 import PromoCarousel from "@/components/PromoCarousel";
+import ProductCard from "@/components/ProductCard";
 
 const CATEGORIES = [
   { name: "All", icon: "apps" as const, isIcon: true },
@@ -36,14 +40,10 @@ const CATEGORIES = [
     image: require("@/assets/images/electronic.svg"),
     isIcon: false,
   },
+  { name: "Books", image: require("@/assets/images/books.svg"), isIcon: false },
   {
-    name: "Books",
-    image: require("@/assets/images/books.svg"),
-    isIcon: false,
-  },
-  {
-    name: "Clothes",
-    image: require("@/assets/images/clothes.svg"),
+    name: "Fashion",
+    image: require("@/assets/images/fashion.svg"),
     isIcon: false,
   },
   { name: "Shoes", image: require("@/assets/images/shoes.svg"), isIcon: false },
@@ -53,35 +53,30 @@ const CATEGORIES = [
     isIcon: false,
   },
 ];
-
-// const PROMOS = [
-//   {
-//     id: "1",
-//     title: "Today's Special",
-//     desc: "Get discount for every order, only for today",
-//     image: require("@/assets/images/promo.png"),
-//   },
-//   {
-//     id: "2",
-//     title: "New Arrival",
-//     desc: "Check out our latest premium collections",
-//     image: require("@/assets/images/promo.png"),
-//   },
-//   {
-//     id: "3",
-//     title: "Flash Sale",
-//     desc: "Limited time offer up to 50% off",
-//     image: require("@/assets/images/promo.png"),
-//   },
-// ];
-
 const HomeScreen = () => {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const scrollRef = useRef<ScrollView>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const { isAddingToCart, addToCart } = useCart();
   const { data: products, isLoading, isError } = useProducts();
 
-  const filteredProducts = useMemo(() => {
+  const handleAddToCart = (productId: string, productName: string) => {
+    addToCart(
+      { productId, quantity: 1 },
+      {
+        onSuccess: () =>
+          Alert.alert("Success", `${productName} added to cart!`),
+        onError: (err: any) =>
+          Alert.alert("Error", err?.response?.data?.error || "Failed"),
+      },
+    );
+  };
+
+  const baseFiltered = useMemo(() => {
     if (!products) return [];
     let filtered = products;
     if (selectedCategory !== "All") {
@@ -94,6 +89,42 @@ const HomeScreen = () => {
     }
     return filtered;
   }, [products, selectedCategory, searchQuery]);
+
+  const popularSection = useMemo(() => {
+    return [...baseFiltered]
+      .filter((p) => (p.totalReviews || 0) > 100)
+      .sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
+      .slice(0, 6);
+  }, [baseFiltered]);
+
+  const newArrivalsSection = useMemo(() => {
+    return [...baseFiltered].reverse().slice(0, 10);
+  }, [baseFiltered]);
+
+  const handleScroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        x: direction === "left" ? 0 : scale(450),
+        animated: true,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (popularSection.length === 0 || isLoading) return;
+
+    const interval = setInterval(() => {
+      const nextIndex = (currentIndex + 1) % popularSection.length;
+      setCurrentIndex(nextIndex);
+      const itemWidth = scale(165) + scale(12);
+      scrollRef.current?.scrollTo({
+        x: nextIndex * itemWidth,
+        animated: true,
+      });
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [currentIndex, popularSection.length, isLoading]);
 
   return (
     <View style={styles.container}>
@@ -135,7 +166,6 @@ const HomeScreen = () => {
                 </View>
               </View>
 
-              {/* Search Box */}
               <View style={styles.searchBox}>
                 <Octicons
                   name="search"
@@ -159,8 +189,6 @@ const HomeScreen = () => {
               </View>
 
               <Text style={styles.categoryTitle}>Popular Categories</Text>
-
-              {/* Horizontal Categories */}
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -200,7 +228,6 @@ const HomeScreen = () => {
                                 ? theme.colors.primary
                                 : theme.colors.black
                             }
-                            transition={200}
                           />
                         )}
                       </View>
@@ -213,16 +240,9 @@ const HomeScreen = () => {
           </SafeScreen>
         </ImageBackground>
 
-        {/* PROMO & PRODUCTS SECTION */}
+        {/* CONTENT BODY */}
         <View style={styles.contentBody}>
           <PromoCarousel />
-
-          <View style={styles.listHeader}>
-            <Text style={styles.listTitle}>Most Popular</Text>
-            <Text style={styles.itemCountText}>
-              {filteredProducts.length} items
-            </Text>
-          </View>
 
           {isLoading ? (
             <View style={styles.statusContainer}>
@@ -240,13 +260,64 @@ const HomeScreen = () => {
               </Text>
             </View>
           ) : (
-            <View style={styles.productsContainer}>
-              <ProductsGrid
-                products={filteredProducts}
-                isLoading={isLoading}
-                isError={isError}
-              />
-            </View>
+            <>
+              {/* SECTION: MOST POPULAR */}
+              <View style={styles.listHeader}>
+                <Text style={styles.listTitle}>Most Popular</Text>
+                <TouchableOpacity
+                  onPress={() => router.push("/popular-products")}
+                >
+                  <Text style={styles.seeAllText}>See All</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.horizontalWrapper}>
+                <ScrollView
+                  ref={scrollRef}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.horizontalScrollContent}
+                  snapToInterval={scale(165) + scale(12)}
+                  decelerationRate="fast"
+                  onMomentumScrollEnd={(event) => {
+                    const newIndex = Math.round(
+                      event.nativeEvent.contentOffset.x /
+                        (scale(165) + scale(12)),
+                    );
+                    setCurrentIndex(newIndex);
+                  }}
+                >
+                  {popularSection.map((item) => (
+                    <ProductCard
+                      key={item._id}
+                      product={item}
+                      horizontal={true}
+                      isFavorite={isInWishlist(item._id)}
+                      isAddingToCart={isAddingToCart}
+                      onToggleWishlist={toggleWishlist}
+                      onAddToCart={handleAddToCart}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* SECTION: NEW ARRIVALS */}
+              <View style={styles.listHeader}>
+                <Text style={styles.listTitle}>New Arrivals</Text>
+                <TouchableOpacity
+                  onPress={() => router.push("/new-arrivals" as any)}
+                >
+                  <Text style={styles.seeAllText}>See All</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.productsContainer}>
+                <ProductsGrid
+                  products={newArrivalsSection}
+                  isLoading={isLoading}
+                  isError={isError}
+                />
+              </View>
+            </>
           )}
         </View>
       </ScrollView>
@@ -255,27 +326,19 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.backgroundhome,
-  },
-  headerImageBg: {
-    width: "100%",
-    minHeight: verticalScale(300),
-  },
+  container: { flex: 1, backgroundColor: theme.colors.backgroundhome },
+  headerImageBg: { width: "100%", minHeight: verticalScale(300) },
   headerImageStyle: {
     borderBottomLeftRadius: scale(32),
     borderBottomRightRadius: scale(32),
   },
-  headerInner: {
-    paddingHorizontal: scale(16),
-  },
+  headerInner: { paddingHorizontal: scale(16) },
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: verticalScale(10),
-    marginBottom: verticalScale(20),
+    marginBottom: verticalScale(30),
   },
   logoText: {
     fontSize: theme.fontSize.FONT_20Px,
@@ -283,12 +346,8 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
     letterSpacing: 2.8,
   },
-  headerIcons: {
-    flexDirection: "row",
-  },
-  iconButton: {
-    marginLeft: scale(15),
-  },
+  headerIcons: { flexDirection: "row" },
+  iconButton: { marginLeft: scale(15) },
   searchBox: {
     backgroundColor: theme.colors.white,
     flexDirection: "row",
@@ -296,11 +355,6 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.full,
     paddingHorizontal: scale(18),
     height: verticalScale(48),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
     marginBottom: verticalScale(20),
   },
   searchInput: {
@@ -313,19 +367,13 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.FONT_20Px,
     fontFamily: theme.fonts.semiBold,
     color: theme.colors.white,
-    marginBottom: verticalScale(15),
+    marginBottom: verticalScale(25),
   },
-  catList: {
-    paddingBottom: verticalScale(20),
-    paddingRight: scale(15),
-  },
-  catItem: {
-    alignItems: "center",
-    width: scale(65),
-  },
+  catList: { paddingBottom: verticalScale(20), paddingRight: scale(15) },
+  catItem: { alignItems: "center", width: scale(70) },
   catIconCircle: {
-    width: scale(50),
-    height: scale(50),
+    width: scale(48),
+    height: scale(48),
     borderRadius: scale(27),
     backgroundColor: theme.colors.white,
     justifyContent: "center",
@@ -337,10 +385,7 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.FONT_12Px,
     fontFamily: theme.fonts.medium,
   },
-  contentBody: {
-    paddingHorizontal: scale(16),
-    marginTop: verticalScale(20),
-  },
+  contentBody: { paddingHorizontal: scale(16), marginTop: verticalScale(20) },
   listHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -352,9 +397,9 @@ const styles = StyleSheet.create({
     fontFamily: theme.fonts.semiBold,
     color: theme.colors.black,
   },
-  itemCountText: {
-    fontSize: theme.fontSize.FONT_13Px,
-    fontFamily: theme.fonts.medium,
+  seeAllText: {
+    fontSize: theme.fontSize.FONT_14Px,
+    fontFamily: theme.fonts.semiBold,
     color: theme.colors.primary,
   },
   statusContainer: {
@@ -362,14 +407,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  productsContainer: {
-    flex: 1,
-  },
+  productsContainer: { flex: 1 },
   statusText: {
     marginTop: verticalScale(12),
     fontSize: theme.fontSize.FONT_14Px,
     fontFamily: theme.fonts.medium,
   },
+  popularWrapper: {
+    position: "relative",
+    marginHorizontal: scale(-16),
+    justifyContent: "center",
+  },
+  horizontalScrollContent: { paddingHorizontal: scale(20) },
+  horizontalWrapper: { marginHorizontal: scale(-16) , marginBottom: scale(20)},
 });
 
 export default HomeScreen;

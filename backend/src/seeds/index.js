@@ -38,7 +38,7 @@ const products = [
       "Handcrafted genuine leather bag with adjustable strap. Features multiple compartments and elegant design perfect for daily use.",
     price: 89.99,
     stock: 25,
-    category: "Clothes",
+    category: "Fashion",
     images: [
       "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500",
       "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500",

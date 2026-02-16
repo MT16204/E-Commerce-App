@@ -16,6 +16,7 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useSignUp } from "@clerk/clerk-expo";
 import theme, { scale, verticalScale } from "../../theme";
 import { SafeAreaView } from "react-native-safe-area-context";
+import useSocialAuth from "@/hooks/useSocialAuth";
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -25,6 +26,8 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { loadingStrategy, handleSocialAuth } = useSocialAuth();
 
   const isFormValid =
     username.trim() !== "" && email.includes("@") && password.length >= 8;
@@ -190,19 +193,27 @@ export default function SignUpScreen() {
               <View style={styles.line} />
             </View>
 
-            <View style={styles.socialButtonsRow}>
-              {["logo-google", "logo-apple"].map((icon, index) => (
-                <TouchableOpacity key={index} style={styles.socialButton}>
-                  <Ionicons
-                    name={icon as any}
-                    size={28}
-                    color={
-                      icon === "logo-google" ? "#EA4335" : theme.colors.black
-                    }
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
+            {/* <View style={styles.socialButtonsRow}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() => handleSocialAuth("oauth_google")}
+                disabled={loadingStrategy !== null}
+              >
+                <Ionicons name="logo-google" size={28} color="#EA4335" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() => handleSocialAuth("oauth_apple")}
+                disabled={loadingStrategy !== null}
+              >
+                <Ionicons
+                  name="logo-apple"
+                  size={28}
+                  color={theme.colors.black}
+                />
+              </TouchableOpacity>
+            </View> */}
           </View>
 
           <Animated.View entering={FadeInUp.delay(600)} style={styles.footer}>

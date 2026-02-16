@@ -13,11 +13,13 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import ProductCard from "./ProductCard";
 
 interface ProductsGridProps {
   isLoading: boolean;
   isError: boolean;
   products: Product[];
+  horizontal?: boolean; 
 }
 
 const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps) => {
@@ -151,17 +153,24 @@ const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps) => {
   }
 
   return (
-    <FlatList
-      data={products}
-      renderItem={renderProduct}
-      keyExtractor={(item) => item._id}
-      numColumns={2}
-      columnWrapperStyle={{ justifyContent: "space-between" }}
-      showsVerticalScrollIndicator={false}
-      scrollEnabled={false}
-      ListEmptyComponent={NoProductsFound}
-    />
-  );
+  <FlatList
+    data={products}
+    keyExtractor={(item) => item._id}
+    numColumns={2}
+    columnWrapperStyle={{ justifyContent: "space-between" }}
+    scrollEnabled={false}
+    ListEmptyComponent={<NoProductsFound />}
+    renderItem={({ item }) => (
+      <ProductCard
+        product={item}
+        isFavorite={isInWishlist(item._id)}
+        isAddingToCart={isAddingToCart}
+        onToggleWishlist={toggleWishlist}
+        onAddToCart={handleAddToCart}
+      />
+    )}
+  />
+);
 };
 
 export default ProductsGrid;

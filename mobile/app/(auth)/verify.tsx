@@ -73,7 +73,7 @@ export default function VerifyScreen() {
           code: fullCode,
         });
         if (result.status === "needs_new_password") {
-          router.push({ pathname: "/resetScreen" as any, params: { email } });
+          router.push({ pathname: "/reset" as any, params: { email } });
         }
       }
     } catch (err: any) {
