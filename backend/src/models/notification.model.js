@@ -5,13 +5,10 @@ const notificationSchema = new mongoose.Schema(
     clerkId: { type: String, required: true },
     title: { type: String, required: true },
     message: { type: String, required: true },
-    type: { type: String }, 
-    status: { type: String },
-    orderData: {
-      orderId: String,
-      totalPrice: Number,
-      productName: String,
-      productImage: String,
+    type: { type: String },
+    order: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Order",
     },
     isRead: { type: Boolean, default: false },
   },

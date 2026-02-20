@@ -52,7 +52,7 @@ const MENU_GROUPS: MenuItem[] = [
   {
     id: "notif",
     icon: "notifications",
-    title: "Notification",
+    title: "Notifications",
     action: "/notifications",
   },
   {
@@ -167,7 +167,7 @@ const ProfileScreen = () => {
                   <Ionicons
                     name={item.icon}
                     size={22}
-                    color={theme.colors.black}
+                    color={theme.colors.primary}
                   />
                 </View>
                 <Text style={styles.menuTitle}>{item.title}</Text>
@@ -175,7 +175,7 @@ const ProfileScreen = () => {
               <Ionicons
                 name="chevron-forward"
                 size={20}
-                color={theme.colors.primary}
+                color={theme.colors.textPlaceholder}
               />
             </TouchableOpacity>
           ))}

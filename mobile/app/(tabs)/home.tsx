@@ -20,6 +20,7 @@ import ProductsGrid from "@/components/ProductsGrid";
 import useProducts from "@/hooks/useProducts";
 import useCart from "@/hooks/useCart";
 import useWishlist from "@/hooks/useWishlist";
+import useNotifications from "@/hooks/useNotifications"; 
 import LoadingState from "@/components/LoadingState";
 import PromoCarousel from "@/components/PromoCarousel";
 import ProductCard from "@/components/ProductCard";
@@ -64,6 +65,9 @@ const HomeScreen = () => {
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { isAddingToCart, addToCart } = useCart();
   const { data: products, isLoading, isError } = useProducts();
+
+  const { notifications } = useNotifications();
+  const unreadCount = notifications.filter((n: any) => !n.isRead).length;
 
   const handleAddToCart = (productId: string, productName: string) => {
     addToCart(
@@ -143,13 +147,22 @@ const HomeScreen = () => {
                       color={theme.colors.white}
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.iconButton}>
-                    <Ionicons
-                      name="notifications-outline"
-                      size={24}
-                      color={theme.colors.white}
-                      onPress={() => router.push("/notification")}
-                    />
+                  <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={() => router.push("/notifications")}
+                  >
+                    <View>
+                      <Ionicons
+                        name="notifications-outline"
+                        size={24}
+                        color={theme.colors.white}
+                      />
+                      {unreadCount > 0 && (
+                        <View style={styles.badgeContainer}>
+                          <Text style={styles.badgeText}>{unreadCount}</Text>
+                        </View>
+                      )}
+                    </View>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -174,11 +187,7 @@ const HomeScreen = () => {
                     pointerEvents="none"
                   />
                 </Pressable>
-                  <Octicons
-                    name="sliders"
-                    size={18}
-                    color={theme.colors.black}
-                  />
+                <Octicons name="sliders" size={18} color={theme.colors.black} />
               </View>
 
               <Text style={styles.categoryTitle}>Popular Categories</Text>
@@ -346,6 +355,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(18),
     height: verticalScale(48),
     marginBottom: verticalScale(20),
+  },
+  badgeContainer: {
+    position: "absolute",
+    right: -4,
+    top: -4,
+    backgroundColor: theme.colors.primary, 
+    borderRadius: 10,
+    minWidth: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: theme.colors.primary,
+  },
+  badgeText: {
+    color: "white",
+    fontSize: 9,
+    fontFamily: theme.fonts.bold,
+    lineHeight: 12,
   },
   searchInput: {
     flex: 1,

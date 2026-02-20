@@ -184,12 +184,13 @@ const CartScreen = () => {
 
       {cartItems.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons
-            name="cart"
-            size={80}
-            color={theme.colors.grayMedium}
-          />
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="cart-outline" size={80} color={theme.colors.primary} />
+          </View>
           <Text style={styles.emptyTitle}>Your cart is empty</Text>
+          <Text style={styles.emptySubtitle}>
+            Looks like you haven't added anything to your cart yet.{" "}
+          </Text>
           <TouchableOpacity
             style={styles.browseButton}
             onPress={() => router.push("/(tabs)/home")}
@@ -505,11 +506,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: scale(40),
   },
+  emptyIconCircle: {
+    width: scale(100),
+    height: scale(100),
+    borderRadius: scale(50),
+    backgroundColor: theme.colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
   emptyTitle: {
     fontSize: 20,
     fontFamily: theme.fonts.bold,
     marginTop: 20,
     color: theme.colors.heading,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    textAlign: "center",
+    marginTop: 8,
   },
   browseButton: {
     backgroundColor: theme.colors.primary,

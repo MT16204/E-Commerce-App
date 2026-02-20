@@ -70,7 +70,11 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
     paymentResult: {
-      id: String,
+      id: {
+        type: String,
+        unique: true, 
+        sparse: true, 
+      },
       status: String,
     },
     totalPrice: {
@@ -90,7 +94,7 @@ const orderSchema = new mongoose.Schema(
       type: Date,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Order = mongoose.model("Order", orderSchema);

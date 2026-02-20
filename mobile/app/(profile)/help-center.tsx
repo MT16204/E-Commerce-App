@@ -298,21 +298,21 @@ const HelpCenterScreen = () => {
                     <Feather
                       name={channel.icon as any}
                       size={22}
-                      color={theme.colors.black}
+                      color={theme.colors.primary}
                     />
                   )}
                   {channel.library === "FontAwesome5" && (
                     <FontAwesome5
                       name={channel.icon}
                       size={22}
-                      color={theme.colors.black}
+                      color={theme.colors.primary}
                     />
                   )}
                   {channel.library === "MaterialCommunityIcons" && (
                     <MaterialCommunityIcons
                       name={channel.icon as any}
                       size={24}
-                      color={theme.colors.black}
+                      color={theme.colors.primary}
                     />
                   )}
                 </View>
@@ -373,14 +373,14 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F5F5F5",
+    backgroundColor: theme.colors.surface,
     borderRadius: scale(15),
     paddingHorizontal: scale(15),
     height: verticalScale(55),
   },
   searchBarActive: {
-    borderWidth: 1.5,
-    borderColor: theme.colors.black,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
     backgroundColor: theme.colors.white,
   },
   searchInput: {
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     borderRadius: scale(20),
     marginBottom: verticalScale(15),
     padding: scale(18),
-    elevation: 2,
+    elevation: 1,
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 10,

@@ -1,61 +1,85 @@
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { Review } from "../models/review.model.js";
+import { Notification } from "../models/notification.model.js";
 
 export async function createOrder(req, res) {
+  const user = req.user;
+  console.log("--- START DEBUG CREATE ORDER ---");
+  console.log("👤 User ClerkId:", user?.clerkId);
+
   try {
-    const user = req.user;
     const { orderItems, shippingAddress, paymentResult, totalPrice } = req.body;
 
-    if (!orderItems || orderItems.length === 0) {
-      return res.status(400).json({ error: "No order items" });
-    }
+    if (paymentResult?.id) {
+      const existingOrder = await Order.findOne({
+        "paymentResult.id": paymentResult.id,
+      });
+      if (existingOrder) {
+        console.log("⚠️ DUPLICATE DETECTED: Order already created by Webhook.");
 
-    // validate products and stock
-    for (const item of orderItems) {
-      const product = await Product.findById(item.product._id);
-      if (!product) {
+        await triggerNotification(req, user, existingOrder, totalPrice);
+
         return res
-          .status(404)
-          .json({ error: `Product ${item.name} not found` });
-      }
-      if (product.stock < item.quantity) {
-        return res
-          .status(400)
-          .json({ error: `Insufficient stock for ${product.name}` });
+          .status(200)
+          .json({ message: "Order already exists", order: existingOrder });
       }
     }
 
-    const order = await Order.create({
+    const order = new Order({
       user: user._id,
       clerkId: user.clerkId,
       orderItems,
       shippingAddress,
       paymentResult,
-      totalPrice,
+      totalPrice: Number(totalPrice).toFixed(2),
     });
 
-    const io = req.app.get("socketio");
-    if (io) {
-      io.to(user.clerkId).emit("notification", {
-        title: "Đặt hàng thành công! 🛒",
-        message: `Đơn hàng của bạn đã được tiếp nhận với giá $${totalPrice}`,
-        type: "ORDER_CREATED",
-        orderId: order._id,
-      });
-    }
+    await order.save();
+    console.log("✅ NEW ORDER SAVED TO DB:", order._id);
 
-    // update product stock
-    for (const item of orderItems) {
-      await Product.findByIdAndUpdate(item.product._id, {
-        $inc: { stock: -item.quantity },
-      });
-    }
+    await triggerNotification(req, user, order, totalPrice);
 
+    // Update Stock...
     res.status(201).json({ message: "Order created successfully", order });
   } catch (error) {
-    console.error("Error in createOrder controller:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("🔥 ERROR IN CREATE ORDER:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+async function triggerNotification(req, user, order, totalPrice) {
+  console.log("--- RUNNING NOTIFICATION LOGIC ---");
+
+  try {
+    const notif = await Notification.create({
+      clerkId: user.clerkId,
+      title: "Order Successful!",
+      message: `Order #${order._id.toString().slice(-8).toUpperCase()} received.`,
+      type: "ORDER_CREATED",
+      order: order._id,
+    });
+    console.log("📍 STEP 1: Notification saved to DB. ID:", notif._id);
+
+    const io = req.app.get("socketio");
+    if (!io) {
+      console.log(
+        "❌ STEP 2 ERROR: Socket.io instance not found in app configuration!",
+      );
+      return;
+    }
+    console.log("📍 STEP 2: Socket instance OK");
+
+    console.log(`📍 STEP 3: Emitting to Room: ${user.clerkId}`);
+    io.to(user.clerkId).emit("notification", {
+      title: "Order Successful! 🛒",
+      message: `Total: $${totalPrice}`,
+      type: "ORDER_CREATED",
+      order: order,
+    });
+    console.log("🚀 FINAL STEP: .emit() command executed successfully");
+  } catch (err) {
+    console.error("❌ ERROR DURING NOTIFICATION CREATION:", err.message);
   }
 }
 
@@ -73,7 +97,6 @@ export async function getUserOrders(req, res) {
       .sort({ createdAt: -1 });
 
     const orderIds = orders.map((order) => order._id);
-
     const reviews = await Review.find({ orderId: { $in: orderIds } });
 
     const ordersWithReviews = orders.map((order) => {
@@ -121,6 +144,7 @@ export async function updateOrderStatus(req, res) {
 
     res.status(200).json({ message: "Status updated successfully", order });
   } catch (error) {
+    console.error("Error in updateOrderStatus controller:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 }

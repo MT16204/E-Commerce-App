@@ -6,8 +6,8 @@ import theme, { scale, verticalScale } from "@/theme";
 
 interface ScreenHeaderProps {
   title: string;
-  count?: number; 
-  unit?: string; 
+  count?: number;
+  unit?: string;
   showBackButton?: boolean;
 }
 
@@ -19,12 +19,20 @@ const ScreenHeader = ({
 }: ScreenHeaderProps) => {
   const router = useRouter();
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back(); 
+    } else {
+      router.replace("/(tabs)/home");
+    }
+  };
+
   return (
     <View style={styles.headerRow}>
       {showBackButton && (
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={handleBack}
         >
           <Ionicons
             name="chevron-back"

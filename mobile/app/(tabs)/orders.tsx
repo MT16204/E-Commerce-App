@@ -16,7 +16,7 @@ import theme, { scale, verticalScale } from "@/theme";
 import SafeScreen from "@/components/SafeScreen";
 import { FocusAwareStatusBar } from "@/components/StatusBar";
 import RatingModal from "@/components/RatingModal";
-import OrderDetailsModal from "@/components/OrderDetailsModal"; 
+import OrderDetailsModal from "@/components/OrderDetailsModal";
 import LoadingState from "@/components/LoadingState";
 
 import { useOrders } from "@/hooks/useOrders";
@@ -30,7 +30,7 @@ const TABS = [
   { label: "Shipping", value: "shipped" },
   { label: "Completed", value: "delivered" },
 ];
-  
+
 const OrdersScreen = () => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("pending");
@@ -119,7 +119,14 @@ const OrdersScreen = () => {
         <LoadingState message={`Loading ${activeTab} orders...`} />
       ) : isError ? (
         <View style={styles.emptyContainer}>
-          <Feather name="alert-circle" size={60} color={theme.colors.red} />
+          <View style={styles.emptyIconCircle}>
+            <Feather
+              name="alert-circle"
+              size={80}
+              color={theme.colors.red}
+            />
+          </View>
+          {/* <Feather name="alert-circle" size={60} color={theme.colors.red} /> */}
           <Text style={styles.emptyTitle}>Oops! Something went wrong</Text>
           <TouchableOpacity style={styles.primaryBtn} onPress={() => refetch()}>
             <Text style={styles.primaryBtnText}>Retry</Text>
@@ -127,7 +134,13 @@ const OrdersScreen = () => {
         </View>
       ) : !orders || orders.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Feather name="package" size={80} color={theme.colors.grayLight} />
+          <View style={styles.emptyIconCircle}>
+            <Ionicons
+              name="cube-outline"
+              size={80}
+              color={theme.colors.primary}
+            />
+          </View>
           <Text style={styles.emptyTitle}>No {activeTab} orders</Text>
           <Text style={styles.emptySubtitle}>
             You haven't placed any orders in this status.
@@ -136,7 +149,7 @@ const OrdersScreen = () => {
             style={styles.primaryBtn}
             onPress={() => router.push("/(tabs)/home")}
           >
-            <Text style={styles.primaryBtnText}>Explore Shop</Text>
+            <Text style={styles.primaryBtnText}>Start Shopping</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -183,7 +196,7 @@ const OrdersScreen = () => {
 
                     <View style={styles.orderMainInfo}>
                       <Text style={styles.orderId}>
-                        ID: #{order._id.slice(-6).toUpperCase()}
+                        ID: #{order._id.slice(-8).toUpperCase()}
                       </Text>
                       <Text style={styles.orderDate}>
                         {formatDate(order.createdAt)}
@@ -402,6 +415,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: scale(40),
   },
+  emptyIconCircle: {
+    width: scale(100),
+    height: scale(100),
+    borderRadius: scale(50),
+    backgroundColor: theme.colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
   emptyTitle: {
     fontSize: 20,
     fontFamily: theme.fonts.bold,
@@ -415,7 +437,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   primaryBtn: {
-    backgroundColor: theme.colors.primaryPressed,
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: 30,
     paddingVertical: 15,
     borderRadius: 15,

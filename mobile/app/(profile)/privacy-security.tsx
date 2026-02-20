@@ -247,11 +247,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   iconContainer: {
-    width: scale(46),
-    height: scale(35),
+    width: scale(42),
+    height: scale(42),
+    borderRadius: scale(22),
     alignItems: "center",
     justifyContent: "center",
     marginRight: scale(15),
+    backgroundColor: theme.colors.surface,
   },
   textContainer: {
     flex: 1,

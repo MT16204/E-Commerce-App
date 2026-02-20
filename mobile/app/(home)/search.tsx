@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     marginLeft: scale(10),
     fontFamily: theme.fonts.regular,
     fontSize: 15,
-    color: "#000000",
+    color: theme.colors.black,
   },
   recentBox: { paddingHorizontal: scale(16), marginTop: verticalScale(15) },
   recentHeader: {
@@ -336,12 +336,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontFamily: theme.fonts.bold,
-    color: "#272727",
+    color: theme.colors.heading,
     marginTop: 15,
   },
   emptySub: {
     fontSize: 14,
-    color: "#999999",
+    color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 8,
   },

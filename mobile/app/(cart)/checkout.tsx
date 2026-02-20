@@ -96,15 +96,27 @@ const CheckoutScreen = () => {
 
       const { error: presentError } = await presentPaymentSheet();
       if (!presentError) {
-        Alert.alert("Success", "Payment successful!", [
-          {
-            text: "OK",
-            onPress: () => {
-              clearCart();
-              router.replace("/(tabs)/home");
-            },
-          },
-        ]);
+        try {
+          const stripeId =
+            data.paymentIntentId || data.clientSecret?.split("_secret")[0];
+
+          await api.post("/orders", {
+            orderItems: selectedItems.map((item) => ({
+              product: item.product._id,
+              name: item.product.name,
+              quantity: item.quantity,
+              price: item.product.price,
+            })),
+            shippingAddress: address,
+            totalPrice: Number(total.toFixed(2)), 
+            paymentResult: { id: stripeId, status: "succeeded" },
+          });
+
+          clearCart();
+          router.replace("/(tabs)/home");
+        } catch (err) {
+          console.error("Order creation error:", err);
+        }
       }
     } catch (error: any) {
       Sentry.captureException(error);
@@ -169,11 +181,11 @@ const CheckoutScreen = () => {
           ) : (
             <>
               <Text style={styles.payText}>Continue to Payment</Text>
-                <Ionicons
-                  name="arrow-forward"
-                  size={18}
-                  color={theme.colors.white}
-                />
+              <Ionicons
+                name="arrow-forward"
+                size={18}
+                color={theme.colors.white}
+              />
             </>
           )}
         </TouchableOpacity>
@@ -248,12 +260,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: scale(20),
-    paddingBottom: verticalScale(35), 
-    backgroundColor: "transparent", 
+    paddingBottom: verticalScale(35),
+    backgroundColor: "transparent",
   },
   payBtn: {
-    backgroundColor: theme.colors.primary, 
-    height: verticalScale(60), 
+    backgroundColor: theme.colors.primary,
+    height: verticalScale(60),
     borderRadius: scale(35),
     flexDirection: "row",
     alignItems: "center",

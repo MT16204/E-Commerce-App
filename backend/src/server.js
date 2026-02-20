@@ -16,10 +16,34 @@ import reviewRoutes from "./routes/review.route.js";
 import productRoutes from "./routes/product.route.js";
 import cartRoutes from "./routes/cart.route.js";
 import paymentRoutes from "./routes/payment.route.js";
+import notificationRoutes from "./routes/notification.route.js"; 
+
+import { Server } from "socket.io";
+import http from "http";
+
 
 const app = express();
-
 const __dirname = path.resolve();
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: "*" }, 
+});
+
+app.set("socketio", io);
+
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+  
+  socket.on("join", (clerkId) => {
+    socket.join(clerkId);
+    console.log(`User ${clerkId} joined room`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+  });
+});
 
 app.use(
   "/api/payment",
@@ -33,9 +57,9 @@ app.use(
   paymentRoutes
 );
 
+app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 app.use(express.json());
 app.use(clerkMiddleware()); 
-app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
@@ -46,6 +70,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/notifications", notificationRoutes); 
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Success" });
@@ -61,7 +86,7 @@ if (ENV.NODE_ENV === "production") {
 
 const startServer = async () => {
   await connectDB();
-  app.listen(ENV.PORT, () => {
+  server.listen(ENV.PORT, () => {
     console.log("Server is up and running");
   });
 };

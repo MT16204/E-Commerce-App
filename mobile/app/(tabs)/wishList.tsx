@@ -114,17 +114,18 @@ const WishlistScreen = () => {
         <View style={styles.contentBody}>
           {filteredWishlist.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Ionicons
-                name="heart-outline"
-                size={64}
-                color={theme.colors.textPlaceholder}
-              />
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="heart-outline" size={80} color={theme.colors.primary} />
+              </View>
               <Text style={styles.emptyTitle}>Nothing here yet</Text>
+              <Text style={styles.emptySubtitle}>
+                Tap the heart icon on any product to save it here for later.
+              </Text>
               <TouchableOpacity
                 style={styles.browseButton}
                 onPress={() => router.push("/(tabs)/home")}
               >
-                <Text style={styles.browseButtonText}>Go Shopping</Text>
+                <Text style={styles.browseButtonText}>Start Shopping</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -306,7 +307,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     paddingVertical: verticalScale(8),
     borderRadius: scale(12),
-    flexDirection: "row", 
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -315,13 +316,33 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: theme.fonts.bold,
   },
-
-  emptyContainer: { marginTop: verticalScale(60), alignItems: "center" },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: scale(70),
+    paddingHorizontal: scale(40),
+  },
+  emptyIconCircle: {
+    width: scale(100),
+    height: scale(100),
+    borderRadius: scale(50),
+    backgroundColor: theme.colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
   emptyTitle: {
     fontSize: 18,
     fontFamily: theme.fonts.bold,
     color: theme.colors.black,
     marginTop: 15,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    textAlign: "center",
+    marginTop: 8,
   },
   browseButton: {
     backgroundColor: theme.colors.primary,
