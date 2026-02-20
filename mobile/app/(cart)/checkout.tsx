@@ -165,7 +165,7 @@ const CheckoutScreen = () => {
           disabled={paymentLoading}
         >
           {paymentLoading ? (
-            <ActivityIndicator color="#FFF" />
+            <ActivityIndicator color={theme.colors.surface} />
           ) : (
             <>
               <Text style={styles.payText}>Continue to Payment</Text>
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: scale(24),
     marginBottom: verticalScale(12),
     borderWidth: 1,
-    borderColor: "#F4F4F4",
+    borderColor: theme.colors.surface,
   },
   itemImage: {
     width: scale(80),

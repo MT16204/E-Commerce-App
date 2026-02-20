@@ -42,13 +42,10 @@ const PopularProductsScreen = () => {
   const filteredProducts = useMemo(() => {
     if (!products) return [];
 
-    // 1. Lọc sản phẩm có totalReviews > 100 theo yêu cầu của bạn
-    // 2. Sắp xếp theo averageRating giảm dần (Rating cao nhất lên đầu)
     let list = [...products]
       .filter((p) => (p.totalReviews || 0) > 100)
       .sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
 
-    // 3. Lọc theo Category nếu không phải "All"
     if (selectedCategory === "All") return list;
     return list.filter((p) => p.category === selectedCategory);
   }, [products, selectedCategory]);
@@ -135,9 +132,8 @@ const PopularProductsScreen = () => {
                         style={styles.image}
                         contentFit="cover"
                       />
-                      {/* Badge hiển thị số lượt Review để người dùng thấy độ Popular */}
                       <View style={styles.popularBadge}>
-                        <Ionicons name="flame" size={10} color="#FFD700" />
+                        <Ionicons name="flame" size={10} color={theme.colors.yellow} />
                         <Text style={styles.popularBadgeText}>
                           {product.totalReviews}
                         </Text>

@@ -232,7 +232,7 @@ const HelpCenterScreen = () => {
                 ]}
               >
                 <Ionicons
-                  name="search"
+                  name="search-outline"
                   size={20}
                   color={theme.colors.grayMedium}
                 />

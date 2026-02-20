@@ -1,4 +1,3 @@
-// theme/index.ts
 import { colors } from "./colors";
 import { typography } from "./typography";
 import { scale, verticalScale, moderateScale, isIpad } from "./scale";

@@ -40,11 +40,10 @@ const NewArrivalsScreen = () => {
   const { toggleWishlist, wishlist } = useWishlist();
   const { addToCart, isAddingToCart } = useCart();
 
-  // Logic: Đảo ngược mảng sản phẩm để những món được seed sau (mới hơn) hiện lên đầu
   const filteredProducts = useMemo(() => {
     if (!products) return [];
 
-    let list = [...products].reverse(); // Đưa hàng mới lên trên cùng
+    let list = [...products].reverse(); 
 
     if (selectedCategory !== "All") {
       list = list.filter((p) => p.category === selectedCategory);
@@ -259,7 +258,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     zIndex: 1,
   },
-  newBadgeText: { color: "#FFF", fontSize: 10, fontFamily: theme.fonts.bold },
+  newBadgeText: { color: theme.colors.white, fontSize: 10, fontFamily: theme.fonts.bold },
   heartBtn: {
     position: "absolute",
     top: scale(10),

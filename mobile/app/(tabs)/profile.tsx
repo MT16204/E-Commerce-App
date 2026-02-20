@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     width: scale(90),
     height: scale(90),
     borderRadius: scale(45),
-    backgroundColor: "#F4F4F4",
+    backgroundColor: theme.colors.surface,
   },
   userName: {
     fontSize: 20,

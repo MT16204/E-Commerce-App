@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
   StyleSheet,
+  RefreshControl,
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons, Feather } from "@expo/vector-icons";
@@ -16,6 +16,7 @@ import theme, { scale, verticalScale } from "@/theme";
 import SafeScreen from "@/components/SafeScreen";
 import { FocusAwareStatusBar } from "@/components/StatusBar";
 import RatingModal from "@/components/RatingModal";
+import OrderDetailsModal from "@/components/OrderDetailsModal"; 
 import LoadingState from "@/components/LoadingState";
 
 import { useOrders } from "@/hooks/useOrders";
@@ -24,9 +25,17 @@ import { capitalizeFirstLetter, formatDate, getStatusColor } from "@/lib/utils";
 import { Order } from "@/types";
 import ScreenHeader from "@/components/ScreenHeader";
 
+const TABS = [
+  { label: "Ongoing", value: "pending" },
+  { label: "Shipping", value: "shipped" },
+  { label: "Completed", value: "delivered" },
+];
+  
 const OrdersScreen = () => {
   const router = useRouter();
-  const { data: orders, isLoading, isError } = useOrders();
+  const [activeTab, setActiveTab] = useState("pending");
+
+  const { data: orders, isLoading, isError, refetch } = useOrders(activeTab);
   const { createReviewAsync, isCreatingReview } = useReviews();
 
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -35,14 +44,22 @@ const OrdersScreen = () => {
     [key: string]: number;
   }>({});
 
+  const [detailsOrder, setDetailsOrder] = useState<Order | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+
+  const handleOpenDetails = (order: Order) => {
+    setDetailsOrder(order);
+    setShowDetails(true);
+  };
+
   const handleOpenRating = (order: Order) => {
-    setShowRatingModal(true);
     setSelectedOrder(order);
     const initialRatings: { [key: string]: number } = {};
     order.orderItems.forEach((item) => {
       initialRatings[item.product._id] = 0;
     });
     setProductRatings(initialRatings);
+    setShowRatingModal(true);
   };
 
   const handleSubmitRating = async () => {
@@ -72,48 +89,48 @@ const OrdersScreen = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <SafeScreen style={styles.container}>
-        <FocusAwareStatusBar style="dark" />
-        <ScreenHeader title="My Orders" />
-        <LoadingState message="Fetching your orders..." />
-      </SafeScreen>
-    );
-  }
-
-  if (isError) {
-    return (
-      <SafeScreen style={styles.container}>
-        <FocusAwareStatusBar style="dark" />
-        <ScreenHeader title="My Orders" />
-        <View style={styles.emptyContainer}>
-          <Feather name="alert-circle" size={60} color={theme.colors.red} />
-          <Text style={styles.emptyTitle}>Oops! Something went wrong</Text>
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={() => router.back()}
-          >
-            <Text style={styles.primaryBtnText}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeScreen>
-    );
-  }
-
   return (
     <SafeScreen style={styles.container}>
       <FocusAwareStatusBar style="dark" />
-
-      {/* HEADER */}
       <ScreenHeader title="My Orders" count={orders?.length} unit="order" />
 
-      {!orders || orders.length === 0 ? (
+      {/* TAB SELECTOR */}
+      <View style={styles.tabWrapper}>
+        {TABS.map((tab) => (
+          <TouchableOpacity
+            key={tab.value}
+            style={styles.tabItem}
+            onPress={() => setActiveTab(tab.value)}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab.value && styles.activeTabText,
+              ]}
+            >
+              {tab.label}
+            </Text>
+            {activeTab === tab.value && <View style={styles.activeIndicator} />}
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {isLoading ? (
+        <LoadingState message={`Loading ${activeTab} orders...`} />
+      ) : isError ? (
         <View style={styles.emptyContainer}>
-          <Feather name="package" size={80} color={theme.colors.grayMedium} />
-          <Text style={styles.emptyTitle}>No orders yet</Text>
+          <Feather name="alert-circle" size={60} color={theme.colors.red} />
+          <Text style={styles.emptyTitle}>Oops! Something went wrong</Text>
+          <TouchableOpacity style={styles.primaryBtn} onPress={() => refetch()}>
+            <Text style={styles.primaryBtnText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : !orders || orders.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Feather name="package" size={80} color={theme.colors.grayLight} />
+          <Text style={styles.emptyTitle}>No {activeTab} orders</Text>
           <Text style={styles.emptySubtitle}>
-            You haven't placed any orders.
+            You haven't placed any orders in this status.
           </Text>
           <TouchableOpacity
             style={styles.primaryBtn}
@@ -126,6 +143,13 @@ const OrdersScreen = () => {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading}
+              onRefresh={refetch}
+              tintColor={theme.colors.primaryPressed}
+            />
+          }
         >
           {orders.map((order) => {
             const totalItems = order.orderItems.reduce(
@@ -135,82 +159,99 @@ const OrdersScreen = () => {
             const statusColor = getStatusColor(order.status);
 
             return (
-              <View key={order._id} style={styles.orderCard}>
-                <View style={styles.orderHeader}>
-                  <View style={styles.imageWrapper}>
-                    <Image
-                      source={order.orderItems[0]?.image}
-                      style={styles.orderImage}
-                      contentFit="cover"
-                    />
-                    {order.orderItems.length > 1 && (
-                      <View style={styles.multiBadge}>
-                        <Text style={styles.multiBadgeText}>
-                          +{order.orderItems.length - 1}
+              <TouchableOpacity
+                key={order._id}
+                activeOpacity={0.9}
+                onPress={() => handleOpenDetails(order)}
+              >
+                <View style={styles.orderCard}>
+                  <View style={styles.orderHeader}>
+                    <View style={styles.imageWrapper}>
+                      <Image
+                        source={order.orderItems[0]?.image}
+                        style={styles.orderImage}
+                        contentFit="cover"
+                      />
+                      {order.orderItems.length > 1 && (
+                        <View style={styles.multiBadge}>
+                          <Text style={styles.multiBadgeText}>
+                            +{order.orderItems.length - 1}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={styles.orderMainInfo}>
+                      <Text style={styles.orderId}>
+                        ID: #{order._id.slice(-6).toUpperCase()}
+                      </Text>
+                      <Text style={styles.orderDate}>
+                        {formatDate(order.createdAt)}
+                      </Text>
+                      <View
+                        style={[
+                          styles.statusBadge,
+                          { backgroundColor: statusColor + "15" },
+                        ]}
+                      >
+                        <Text
+                          style={[styles.statusText, { color: statusColor }]}
+                        >
+                          {capitalizeFirstLetter(order.status)}
                         </Text>
                       </View>
-                    )}
-                  </View>
+                    </View>
 
-                  <View style={styles.orderMainInfo}>
-                    <Text style={styles.orderId}>
-                      ID: #{order._id.slice(-6).toUpperCase()}
-                    </Text>
-                    <Text style={styles.orderDate}>
-                      {formatDate(order.createdAt)}
-                    </Text>
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        { backgroundColor: statusColor + "15" },
-                      ]}
-                    >
-                      <Text style={[styles.statusText, { color: statusColor }]}>
-                        {capitalizeFirstLetter(order.status)}
+                    <View style={styles.priceSection}>
+                      <Text style={styles.totalPrice}>
+                        ${order.totalPrice.toFixed(2)}
                       </Text>
+                      <Text style={styles.itemQty}>{totalItems} items</Text>
                     </View>
                   </View>
-                  <View style={styles.priceSection}>
-                    <Text style={styles.totalPrice}>
-                      ${order.totalPrice.toFixed(2)}
-                    </Text>
-                    <Text style={styles.itemQty}>{totalItems} items</Text>
-                  </View>
-                </View>
 
-                {/* ACTION BUTTON */}
-                {order.status === "delivered" && (
-                  <View style={styles.footerAction}>
-                    {order.hasReviewed ? (
-                      <View style={styles.reviewedBadge}>
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={16}
-                          color={theme.colors.green}
-                        />
-                        <Text style={styles.reviewedText}>Reviewed</Text>
-                      </View>
-                    ) : (
-                      <TouchableOpacity
-                        style={styles.rateBtn}
-                        onPress={() => handleOpenRating(order)}
-                        disabled={isCreatingReview}
-                      >
-                        <Ionicons
-                          name="star"
-                          size={16}
-                          color={theme.colors.white}
-                        />
-                        <Text style={styles.rateBtnText}>Rate Experience</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                )}
-              </View>
+                  {order.status === "delivered" && (
+                    <View style={styles.footerAction}>
+                      {order.hasReviewed ? (
+                        <View style={styles.reviewedBadge}>
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={16}
+                            color={theme.colors.green}
+                          />
+                          <Text style={styles.reviewedText}>Reviewed</Text>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.rateBtn}
+                          onPress={() => handleOpenRating(order)}
+                          disabled={isCreatingReview}
+                        >
+                          <Ionicons
+                            name="star"
+                            size={16}
+                            color={theme.colors.white}
+                          />
+                          <Text style={styles.rateBtnText}>
+                            Rate Experience
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
             );
           })}
         </ScrollView>
       )}
+
+      {/* MODALS */}
+      <OrderDetailsModal
+        visible={showDetails}
+        onClose={() => setShowDetails(false)}
+        order={detailsOrder}
+      />
 
       <RatingModal
         visible={showRatingModal}
@@ -229,27 +270,36 @@ const OrdersScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.backgroundhome },
-  headerRow: {
+  tabWrapper: {
     flexDirection: "row",
+    paddingVertical: verticalScale(5),
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.surfaceVariant,
+  },
+  tabItem: {
+    flex: 1,
     alignItems: "center",
-    paddingHorizontal: scale(20),
-    marginTop: verticalScale(10),
-    marginBottom: verticalScale(10),
+    paddingVertical: verticalScale(10),
+    position: "relative",
   },
-  backButton: { padding: 5, marginRight: scale(10) },
-  headerTitle: {
-    fontSize: 22,
-    fontFamily: theme.fonts.semiBold,
-    color: theme.colors.heading,
-  },
-  itemCount: {
-    marginLeft: "auto",
+  tabText: {
     fontSize: 14,
-    fontFamily: theme.fonts.regular,
-    color: theme.colors.textSecondary,
+    fontFamily: theme.fonts.medium,
+    color: theme.colors.grayMedium,
+  },
+  activeTabText: { color: theme.colors.primary, fontFamily: theme.fonts.bold },
+  activeIndicator: {
+    position: "absolute",
+    bottom: 0,
+    width: "50%",
+    height: 3,
+    backgroundColor: theme.colors.primary,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
   },
   scrollContent: {
     paddingHorizontal: scale(20),
+    paddingTop: verticalScale(15),
     paddingBottom: verticalScale(30),
   },
   orderCard: {
@@ -275,7 +325,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: -5,
     right: -5,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryPressed,
     borderRadius: scale(10),
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -311,13 +361,13 @@ const styles = StyleSheet.create({
   totalPrice: {
     fontSize: 18,
     fontFamily: theme.fonts.bold,
-    color: theme.colors.primary,
+    color: theme.colors.primaryPressed,
   },
-  itemQty: { fontSize: 12, color: theme.colors.textSecondary, marginTop: 2 },
+  itemQty: { fontSize: 12, color: theme.colors.grayMedium, marginTop: 2 },
   footerAction: {
     marginTop: scale(15),
     borderTopWidth: 1,
-    borderTopColor: theme.colors.surface,
+    borderTopColor: theme.colors.surfaceVariant,
     paddingTop: scale(12),
   },
   reviewedBadge: {
@@ -333,7 +383,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   rateBtn: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryPressed,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -365,7 +415,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   primaryBtn: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryPressed,
     paddingHorizontal: 30,
     paddingVertical: 15,
     borderRadius: 15,

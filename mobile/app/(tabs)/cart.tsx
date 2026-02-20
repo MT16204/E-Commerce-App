@@ -184,8 +184,8 @@ const CartScreen = () => {
 
       {cartItems.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Feather
-            name="shopping-cart"
+          <Ionicons
+            name="cart"
             size={80}
             color={theme.colors.grayMedium}
           />
@@ -419,9 +419,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   productName: {
-    fontSize: 16,
-    fontFamily: theme.fonts.bold,
+    fontSize: 15,
+    fontFamily: theme.fonts.semiBold,
     color: theme.colors.heading,
+    marginBottom: 8,
   },
   productPrice: {
     fontSize: 18,

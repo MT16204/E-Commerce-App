@@ -9,6 +9,7 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  Pressable,
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons, Octicons } from "@expo/vector-icons";
@@ -101,28 +102,14 @@ const HomeScreen = () => {
     return [...baseFiltered].reverse().slice(0, 10);
   }, [baseFiltered]);
 
-  const handleScroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        x: direction === "left" ? 0 : scale(450),
-        animated: true,
-      });
-    }
-  };
-
   useEffect(() => {
     if (popularSection.length === 0 || isLoading) return;
-
     const interval = setInterval(() => {
       const nextIndex = (currentIndex + 1) % popularSection.length;
       setCurrentIndex(nextIndex);
       const itemWidth = scale(165) + scale(12);
-      scrollRef.current?.scrollTo({
-        x: nextIndex * itemWidth,
-        animated: true,
-      });
-    }, 2000);
-
+      scrollRef.current?.scrollTo({ x: nextIndex * itemWidth, animated: true });
+    }, 3000);
     return () => clearInterval(interval);
   }, [currentIndex, popularSection.length, isLoading]);
 
@@ -161,31 +148,37 @@ const HomeScreen = () => {
                       name="notifications-outline"
                       size={24}
                       color={theme.colors.white}
+                      onPress={() => router.push("/notification")}
                     />
                   </TouchableOpacity>
                 </View>
               </View>
 
               <View style={styles.searchBox}>
-                <Octicons
-                  name="search"
-                  size={20}
-                  color={theme.colors.grayMedium}
-                />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search..."
-                  placeholderTextColor={theme.colors.textPlaceholder}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                />
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push("/search")}>
+                  <Octicons
+                    name="search"
+                    size={20}
+                    color={theme.colors.grayMedium}
+                  />
+                </TouchableOpacity>
+                <Pressable
+                  style={{ flex: 1, height: "100%" }}
+                  onPress={() => router.push("/search")}
+                >
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search..."
+                    placeholderTextColor={theme.colors.textPlaceholder}
+                    editable={false}
+                    pointerEvents="none"
+                  />
+                </Pressable>
                   <Octicons
                     name="sliders"
                     size={18}
                     color={theme.colors.black}
                   />
-                </TouchableOpacity>
               </View>
 
               <Text style={styles.categoryTitle}>Popular Categories</Text>
@@ -261,7 +254,7 @@ const HomeScreen = () => {
             </View>
           ) : (
             <>
-              {/* SECTION: MOST POPULAR */}
+              {/* MOST POPULAR */}
               <View style={styles.listHeader}>
                 <Text style={styles.listTitle}>Most Popular</Text>
                 <TouchableOpacity
@@ -276,32 +269,29 @@ const HomeScreen = () => {
                   ref={scrollRef}
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.horizontalScrollContent}
+                  contentContainerStyle={{
+                    paddingLeft: scale(16),
+                    paddingRight: 0,
+                  }}
                   snapToInterval={scale(165) + scale(12)}
                   decelerationRate="fast"
-                  onMomentumScrollEnd={(event) => {
-                    const newIndex = Math.round(
-                      event.nativeEvent.contentOffset.x /
-                        (scale(165) + scale(12)),
-                    );
-                    setCurrentIndex(newIndex);
-                  }}
                 >
                   {popularSection.map((item) => (
-                    <ProductCard
-                      key={item._id}
-                      product={item}
-                      horizontal={true}
-                      isFavorite={isInWishlist(item._id)}
-                      isAddingToCart={isAddingToCart}
-                      onToggleWishlist={toggleWishlist}
-                      onAddToCart={handleAddToCart}
-                    />
+                    <View key={item._id} style={{ marginRight: scale(12) }}>
+                      <ProductCard
+                        product={item}
+                        horizontal={true}
+                        isFavorite={isInWishlist(item._id)}
+                        isAddingToCart={isAddingToCart}
+                        onToggleWishlist={toggleWishlist}
+                        onAddToCart={handleAddToCart}
+                      />
+                    </View>
                   ))}
                 </ScrollView>
               </View>
 
-              {/* SECTION: NEW ARRIVALS */}
+              {/* NEW ARRIVALS */}
               <View style={styles.listHeader}>
                 <Text style={styles.listTitle}>New Arrivals</Text>
                 <TouchableOpacity
@@ -359,9 +349,12 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    height: "100%",
     marginLeft: scale(10),
     fontFamily: theme.fonts.regular,
     fontSize: theme.fontSize.FONT_14Px,
+    color: theme.colors.black,
+    paddingVertical: 0,
   },
   categoryTitle: {
     fontSize: theme.fontSize.FONT_20Px,
@@ -413,13 +406,9 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.FONT_14Px,
     fontFamily: theme.fonts.medium,
   },
-  popularWrapper: {
-    position: "relative",
-    marginHorizontal: scale(-16),
-    justifyContent: "center",
-  },
-  horizontalScrollContent: { paddingHorizontal: scale(20) },
-  horizontalWrapper: { marginHorizontal: scale(-16) , marginBottom: scale(20)},
+  horizontalScrollContent: { paddingHorizontal: scale(18) },
+
+  horizontalWrapper: { marginHorizontal: scale(-16), marginBottom: scale(20) },
 });
 
 export default HomeScreen;
