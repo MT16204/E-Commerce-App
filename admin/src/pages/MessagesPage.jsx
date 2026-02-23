@@ -5,27 +5,12 @@ import { customerApi, chatApi } from "../lib/api";
 import { formatDate } from "../lib/utils";
 import { Search, Send, User, MoreVertical, Trash2 } from "lucide-react";
 
-interface ICustomer {
-  _id: string;
-  clerkId: string;
-  name: string;
-  imageUrl?: string;
-}
-
-interface IMessage {
-  senderId: string;
-  receiverId: string;
-  text: string;
-  isAdmin: boolean;
-  createdAt: string | Date;
-}
-
 function MessagesPage() {
-  const [selectedUser, setSelectedUser] = useState<ICustomer | null>(null);
-  const [messageInput, setMessageInput] = useState<string>("");
-  const [chatMessages, setChatMessages] = useState<IMessage[]>([]);
-  const [showMenu, setShowMenu] = useState(false); 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [messageInput, setMessageInput] = useState("");
+  const [chatMessages, setChatMessages] = useState([]);
+  const [showMenu, setShowMenu] = useState(false);
+  const scrollRef = useRef(null);
   const queryClient = useQueryClient();
 
   const { data: customerData, isLoading: loadingCustomers } = useQuery({
@@ -33,11 +18,11 @@ function MessagesPage() {
     queryFn: customerApi.getAll,
   });
 
-  const customers: ICustomer[] = customerData?.customers || [];
+  const customers = customerData?.customers || [];
 
   const { data: historyData } = useQuery({
     queryKey: ["chatHistory", selectedUser?.clerkId],
-    queryFn: () => chatApi.getHistory(selectedUser!.clerkId),
+    queryFn: () => chatApi.getHistory(selectedUser?.clerkId),
     enabled: !!selectedUser?.clerkId,
   });
 
@@ -50,8 +35,9 @@ function MessagesPage() {
     socket.connect();
     socket.emit("join", "ADMIN");
 
-    const handleNewMsg = (msg: IMessage) => {
+    const handleNewMsg = (msg) => {
       console.log("📩 Admin Console nhận tin mới:", msg);
+
       if (
         selectedUser &&
         (msg.senderId === selectedUser.clerkId ||
@@ -59,10 +45,12 @@ function MessagesPage() {
       ) {
         setChatMessages((prev) => [...prev, msg]);
       }
+
       queryClient.invalidateQueries({ queryKey: ["customers"] });
     };
 
     socket.on("newMessage", handleNewMsg);
+
     return () => {
       socket.off("newMessage", handleNewMsg);
     };
@@ -74,17 +62,19 @@ function MessagesPage() {
 
   useEffect(() => {
     const handleOutsideClick = () => setShowMenu(false);
+
     if (showMenu) {
       window.addEventListener("click", handleOutsideClick);
     }
+
     return () => window.removeEventListener("click", handleOutsideClick);
   }, [showMenu]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = (e) => {
     e.preventDefault();
     if (!messageInput.trim() || !selectedUser) return;
 
-    const msgData: IMessage = {
+    const msgData = {
       senderId: "ADMIN",
       receiverId: selectedUser.clerkId,
       text: messageInput,
@@ -99,6 +89,7 @@ function MessagesPage() {
 
   const handleDeleteHistory = async () => {
     if (!selectedUser) return;
+
     if (
       confirm(
         `Are you sure you want to delete chat history with ${selectedUser.name}?`,
@@ -125,6 +116,7 @@ function MessagesPage() {
               All messages
             </span>
           </div>
+
           <div className="relative">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
             <input
@@ -134,6 +126,7 @@ function MessagesPage() {
             />
           </div>
         </div>
+
         <div className="flex-1 overflow-y-auto">
           {loadingCustomers ? (
             <div className="flex justify-center p-4">
@@ -144,7 +137,11 @@ function MessagesPage() {
               <button
                 key={customer._id}
                 onClick={() => setSelectedUser(customer)}
-                className={`w-full p-4 flex items-center gap-3 hover:bg-[#252b36] border-b border-gray-800/50 ${selectedUser?._id === customer._id ? "bg-[#252b36] border-r-4 border-[#5D76FF]" : ""}`}
+                className={`w-full p-4 flex items-center gap-3 hover:bg-[#252b36] border-b border-gray-800/50 ${
+                  selectedUser?._id === customer._id
+                    ? "bg-[#252b36] border-r-4 border-[#5D76FF]"
+                    : ""
+                }`}
               >
                 <img
                   src={customer.imageUrl || "https://via.placeholder.com/150"}
@@ -175,11 +172,14 @@ function MessagesPage() {
                 <h3 className="font-bold text-white">{selectedUser.name}</h3>
               </div>
 
-              {/* Dropdown Menu */}
               <div className="relative" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => setShowMenu(!showMenu)}
-                  className={`p-2 rounded-full transition-colors ${showMenu ? "bg-[#272727] text-white" : "text-gray-400 hover:bg-[#272727]"}`}
+                  className={`p-2 rounded-full transition-colors ${
+                    showMenu
+                      ? "bg-[#272727] text-white"
+                      : "text-gray-400 hover:bg-[#272727]"
+                  }`}
                 >
                   <MoreVertical size={20} />
                 </button>
@@ -201,14 +201,20 @@ function MessagesPage() {
               {chatMessages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`flex ${msg.isAdmin ? "justify-end" : "justify-start"}`}
+                  className={`flex ${
+                    msg.isAdmin ? "justify-end" : "justify-start"
+                  }`}
                 >
                   <div
-                    className={`max-w-[70%] p-3 rounded-2xl text-sm ${msg.isAdmin ? "bg-[#5D76FF] rounded-tr-none" : "bg-[#252b36] rounded-tl-none border border-gray-700"}`}
+                    className={`max-w-[70%] p-3 rounded-2xl text-sm ${
+                      msg.isAdmin
+                        ? "bg-[#5D76FF] rounded-tr-none"
+                        : "bg-[#252b36] rounded-tl-none border border-gray-700"
+                    }`}
                   >
                     {msg.text}
                     <p className="text-[10px] mt-1 opacity-50">
-                      {formatDate(msg.createdAt.toString())}
+                      {formatDate(String(msg.createdAt))}
                     </p>
                   </div>
                 </div>
