@@ -29,7 +29,7 @@ const MENU_GROUPS: MenuItem[] = [
     id: "edit",
     icon: "person",
     title: "Edit Profile",
-    action: "/(auth)/edit-profile",
+    action: "/(profile)/edit-profile",
   },
   {
     id: "address",

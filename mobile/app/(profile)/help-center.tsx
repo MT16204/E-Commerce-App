@@ -9,6 +9,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  Alert,
 } from "react-native";
 import {
   Ionicons,
@@ -20,6 +21,7 @@ import theme, { scale, verticalScale } from "@/theme";
 import SafeScreen from "@/components/SafeScreen";
 import { FocusAwareStatusBar } from "@/components/StatusBar";
 import ScreenHeader from "@/components/ScreenHeader";
+import { router } from "expo-router";
 
 if (
   Platform.OS === "android" &&
@@ -102,6 +104,7 @@ const CONTACT_CHANNELS = [
     title: "Customer Service",
     icon: "headset",
     library: "MaterialCommunityIcons",
+    path: "/customer-service",
   },
   {
     id: "2",
@@ -148,7 +151,7 @@ const HelpCenterScreen = () => {
 
   const displayFaqs = FAQ_DATA.filter((item) => {
     if (activeCategory === "General") return true;
-    return item.category === activeCategory; 
+    return item.category === activeCategory;
   });
 
   const searchedFaqs = FAQ_DATA.filter((item) =>
@@ -165,6 +168,18 @@ const HelpCenterScreen = () => {
     setTimeout(() => {
       toggleExpand(item.id);
     }, 100);
+  };
+
+  const handleContactPress = (channel: (typeof CONTACT_CHANNELS)[0]) => {
+    if (channel.path) {
+      router.push(channel.path as any);
+    } else {
+      Alert.alert(
+        "Coming Soon",
+        `The ${channel.title} feature is currently under development. Please try again later.`,
+        [{ text: "OK" }],
+      );
+    }
   };
 
   return (
@@ -292,7 +307,11 @@ const HelpCenterScreen = () => {
         ) : (
           <View style={styles.contactList}>
             {CONTACT_CHANNELS.map((channel) => (
-              <TouchableOpacity key={channel.id} style={styles.contactCard}>
+              <TouchableOpacity
+                key={channel.id}
+                style={styles.contactCard}
+                onPress={() => handleContactPress(channel)}
+              >
                 <View style={styles.contactIconWrapper}>
                   {channel.library === "Feather" && (
                     <Feather

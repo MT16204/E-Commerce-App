@@ -4,6 +4,7 @@ import { Alert } from "react-native";
 import { useApi } from "@/lib/api";
 import { socket } from "@/lib/socket";
 import { useUser } from "@clerk/clerk-expo";
+import { usePathname } from "expo-router";
 
 export interface Notification {
   _id: string;
@@ -26,16 +27,18 @@ export interface Notification {
 }
 
 const useNotifications = () => {
+  const pathname = usePathname();
   const api = useApi();
-  const { user } = useUser(); 
+  const { user } = useUser();
   const queryClient = useQueryClient();
+
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
       const response = await api.get("/notifications");
       return response.data.notifications;
     },
-    enabled: !!user?.id, 
+    enabled: !!user?.id,
   });
 
   useEffect(() => {
@@ -45,11 +48,15 @@ const useNotifications = () => {
     socket.emit("join", user.id);
 
     const handleNewNotification = (notif: any) => {
-      console.log("🔔 Socket Recieved:", notif);
+      console.log("🔔 Socket Received:", notif);
 
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
 
-      Alert.alert(notif.title, notif.message);
+      const isChatScreen = pathname.includes("customer-service");
+
+      if (!isChatScreen) {
+        Alert.alert(notif.title, notif.message);
+      }
     };
 
     socket.on("notification", handleNewNotification);
@@ -57,11 +64,20 @@ const useNotifications = () => {
     return () => {
       socket.off("notification", handleNewNotification);
     };
-  }, [user?.id, queryClient]);
+  }, [user?.id, queryClient, pathname]); 
 
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
       return await api.patch(`/notifications/${id}/read`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+
+  const deleteNotificationMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await api.delete(`/notifications/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
@@ -73,6 +89,7 @@ const useNotifications = () => {
     isLoading,
     refetch,
     markAsRead: markAsReadMutation.mutate,
+    deleteNotification: deleteNotificationMutation.mutate,
   };
 };
 

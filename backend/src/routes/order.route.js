@@ -9,10 +9,10 @@ import {
 const router = Router();
 
 // --- ROUTES USER ---
-router.post("/", ...protectRoute, createOrder);
-router.get("/", ...protectRoute, getUserOrders);
+router.post("/", protectRoute, createOrder);
+router.get("/", protectRoute, getUserOrders);
 
-// ROUTES ADMIN
-router.patch("/:orderId/status", ...protectRoute, adminOnly, updateOrderStatus);
+// --- ROUTES ADMIN ---
+router.patch("/:orderId/status", protectRoute, adminOnly, updateOrderStatus);
 
 export default router;

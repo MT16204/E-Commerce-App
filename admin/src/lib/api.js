@@ -29,7 +29,10 @@ export const orderApi = {
   },
 
   updateStatus: async ({ orderId, status }) => {
-    const { data } = await axiosInstance.patch(`/admin/orders/${orderId}/status`, { status });
+    const { data } = await axiosInstance.patch(
+      `/admin/orders/${orderId}/status`,
+      { status },
+    );
     return data;
   },
 };
@@ -44,6 +47,21 @@ export const statsApi = {
 export const customerApi = {
   getAll: async () => {
     const { data } = await axiosInstance.get("/admin/customers");
+    return data;
+  },
+};
+
+export const chatApi = {
+  getHistory: async (clerkId) => {
+    const { data } = await axiosInstance.get(`/admin/chat/${clerkId}`);
+    return data;
+  },
+  deleteHistory: async (clerkId) => {
+    const { data } = await axiosInstance.delete(`/admin/chat/${clerkId}`);
+    return data;
+  },
+  markAsRead: async (clerkId) => {
+    const { data } = await axiosInstance.post(`/admin/chat/${clerkId}/read`);
     return data;
   },
 };

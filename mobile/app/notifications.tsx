@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -10,8 +10,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Href, useRouter } from "expo-router";
 import { Image } from "expo-image";
-import { useQueryClient } from "@tanstack/react-query";
-import { useUser } from "@clerk/clerk-expo";
 import dayjs from "dayjs";
 
 import theme, { scale, verticalScale } from "@/theme";
@@ -20,26 +18,11 @@ import ScreenHeader from "@/components/ScreenHeader";
 import LoadingState from "@/components/LoadingState";
 import { FocusAwareStatusBar } from "@/components/StatusBar";
 import useNotifications from "@/hooks/useNotifications";
-import { socket } from "@/lib/socket";
 
 const NotificationScreen = () => {
-  const { user } = useUser();
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const { notifications, isLoading, markAsRead } = useNotifications();
-
-  useEffect(() => {
-    if (user?.id) {
-      socket.emit("join", user.id);
-      socket.on("notification", (data) => {
-        queryClient.invalidateQueries({ queryKey: ["notifications"] });
-        Alert.alert(data.title, data.message);
-      });
-    }
-    return () => {
-      socket.off("notification");
-    };
-  }, [user?.id, queryClient]);
+  const { notifications, isLoading, markAsRead, deleteNotification } =
+    useNotifications();
 
   const groupedNotifications = useMemo(() => {
     const groups: { [key: string]: any[] } = {};
@@ -98,19 +81,21 @@ const NotificationScreen = () => {
                 {groupedNotifications[dateLabel].map((notif: any) => (
                   <TouchableOpacity
                     key={notif._id}
-                    activeOpacity={0.7}
+                    activeOpacity={0.8}
                     style={[
                       styles.notifCard,
                       !notif.isRead && styles.notifUnread,
                     ]}
                     onPress={() => {
                       markAsRead(notif._id);
-                      if (notif.order?._id) {
+                      if (notif.type === "CHAT") {
+                        router.push("/(profile)/customer-service" as Href);
+                      } else if (notif.order?._id) {
                         router.push("/(tabs)/orders" as Href);
                       }
                     }}
                   >
-                    {/* IMAGE / ICON WRAPPER */}
+                    {/* ICON / IMAGE */}
                     <View style={styles.imageContainer}>
                       {notif.order?.orderItems?.[0]?.product?.images?.[0] ? (
                         <Image
@@ -119,10 +104,21 @@ const NotificationScreen = () => {
                           contentFit="cover"
                         />
                       ) : (
-                        <View style={styles.iconBox}>
+                        <View
+                          style={[
+                            styles.iconBox,
+                            notif.type === "CHAT" && {
+                              backgroundColor: theme.colors.primary,
+                            },
+                          ]}
+                        >
                           <Ionicons
                             name={
-                              notif.type === "PROMOTION" ? "gift" : "receipt"
+                              notif.type === "PROMOTION"
+                                ? "gift"
+                                : notif.type === "CHAT"
+                                  ? "chatbubble-ellipses"
+                                  : "receipt"
                             }
                             size={24}
                             color={theme.colors.white}
@@ -132,7 +128,7 @@ const NotificationScreen = () => {
                       {!notif.isRead && <View style={styles.unreadDot} />}
                     </View>
 
-                    {/* TEXT CONTENT */}
+                    {/* CONTENT */}
                     <View style={styles.notifInfo}>
                       <View style={styles.notifHeader}>
                         <Text style={styles.notifTitle} numberOfLines={1}>
@@ -150,17 +146,32 @@ const NotificationScreen = () => {
                       {notif.order && (
                         <View style={styles.orderBadge}>
                           <Text style={styles.orderBadgeText}>
-                            Order: #{notif.order._id.slice(-6).toUpperCase()} •
-                            ${Number(notif.order.totalPrice).toFixed(2)}
+                            Order: #{notif.order._id.slice(-6).toUpperCase()}
                           </Text>
-                          <Ionicons
-                            name="chevron-forward"
-                            size={12}
-                            color={theme.colors.primary}
-                          />
                         </View>
                       )}
                     </View>
+
+                    {/* DELETE BUTTON */}
+                    <TouchableOpacity
+                      style={styles.deleteBtn}
+                      onPress={() => {
+                        Alert.alert("Delete", "Remove this notification?", [
+                          { text: "Cancel", style: "cancel" },
+                          {
+                            text: "Delete",
+                            style: "destructive",
+                            onPress: () => deleteNotification(notif._id),
+                          },
+                        ]);
+                      }}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={18}
+                        color={theme.colors.grayMedium}
+                      />
+                    </TouchableOpacity>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -187,10 +198,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: scale(15),
     borderRadius: scale(20),
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.white,
     marginBottom: verticalScale(12),
     borderWidth: 1,
     borderColor: theme.colors.surfaceVariant,
+    position: "relative",
   },
   notifUnread: {
     backgroundColor: theme.colors.surface,
@@ -222,7 +234,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.colors.white,
   },
-  notifInfo: { flex: 1, marginLeft: scale(12), justifyContent: "center" },
+  notifInfo: {
+    flex: 1,
+    marginLeft: scale(12),
+    marginRight: scale(25), 
+    justifyContent: "center",
+  },
   notifHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -246,22 +263,25 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   orderBadge: {
-    flexDirection: "row",
-    alignItems: "center",
     backgroundColor: theme.colors.background,
     alignSelf: "flex-start",
     paddingHorizontal: scale(8),
-    paddingVertical: verticalScale(4),
-    borderRadius: scale(8),
-    marginTop: verticalScale(8),
+    paddingVertical: verticalScale(2),
+    borderRadius: scale(6),
+    marginTop: verticalScale(6),
     borderWidth: 1,
     borderColor: theme.colors.primary,
   },
   orderBadgeText: {
-    fontSize: 11,
+    fontSize: 10,
     color: theme.colors.primary,
     fontFamily: theme.fonts.bold,
-    marginRight: 4,
+  },
+  deleteBtn: {
+    position: "absolute",
+    right: scale(10),
+    top: scale(30),
+    padding: scale(5),
   },
   emptyContainer: {
     marginTop: verticalScale(100),

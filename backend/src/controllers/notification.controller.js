@@ -11,6 +11,26 @@ export const getMyNotifications = async (req, res) => {
 
     res.status(200).json({ notifications });
   } catch (error) {
-    res.status(500).json({ message: "Error" });
+    console.error("Get Notif Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const deleteNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await Notification.findOneAndDelete({
+      _id: id,
+      clerkId: req.user.clerkId,
+    });
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Notification not found" });
+    }
+
+    res.status(200).json({ message: "Notification deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting notification" });
   }
 };

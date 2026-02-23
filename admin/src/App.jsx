@@ -4,9 +4,9 @@ import { useAuth } from "@clerk/clerk-react";
 import DashboardPage from "./pages/DashboardPage";
 import ProductsPage from "./pages/ProductsPage";
 import OrdersPage from "./pages/OrdersPage";
+import MessagesPage from "./pages/MessagesPage";
 import CustomersPage from "./pages/CustomersPage";
 import DashboardLayout from "./layouts/DashboardLayout";
-
 import PageLoader from "./components/PageLoader";
 
 function App() {
@@ -24,6 +24,7 @@ function App() {
         <Route path="products" element={<ProductsPage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="customers" element={<CustomersPage />} />
+        <Route path="messages" element={<MessagesPage />} />
       </Route>
     </Routes>
   );

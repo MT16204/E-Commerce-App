@@ -4,9 +4,10 @@ import { useLocation } from "react-router";
 import {
   ClipboardListIcon,
   HomeIcon,
+  MessageCircleIcon,
   Package,
   PanelLeftIcon,
-  ShoppingBagIcon,
+  SendIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -15,6 +16,8 @@ export const NAVIGATION = [
   { name: "Products", path: "/products", icon: <Package className="size-5" /> },
   { name: "Orders", path: "/orders", icon: <ClipboardListIcon className="size-5" /> },
   { name: "Customers", path: "/customers", icon: <UsersIcon className="size-5" /> },
+  { name: "Messages", path: "/messages", icon: <SendIcon className="size-5" /> },
+
 ];
 
 function Navbar() {

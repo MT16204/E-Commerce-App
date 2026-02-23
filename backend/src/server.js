@@ -16,32 +16,69 @@ import reviewRoutes from "./routes/review.route.js";
 import productRoutes from "./routes/product.route.js";
 import cartRoutes from "./routes/cart.route.js";
 import paymentRoutes from "./routes/payment.route.js";
-import notificationRoutes from "./routes/notification.route.js"; 
+import notificationRoutes from "./routes/notification.route.js";
+import messageRoutes from "./routes/message.route.js";
+import { Message } from "./models/message.model.js";
+import { Notification } from "./models/notification.model.js";
 
 import { Server } from "socket.io";
 import http from "http";
-
 
 const app = express();
 const __dirname = path.resolve();
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*" }, 
+  cors: { origin: "*" },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 });
 
 app.set("socketio", io);
 
+// io.on("connection", (socket) => {
+//   console.log("Client connected:", socket.id);
+
+//   socket.on("join", (clerkId) => {
+//     socket.join(clerkId);
+//     console.log(`User ${clerkId} joined room`);
+//   });
+
+//   socket.on("disconnect", () => {
+//     console.log("Client disconnected");
+//   });
+// });
+
 io.on("connection", (socket) => {
-  console.log("Client connected:", socket.id);
-  
   socket.on("join", (clerkId) => {
     socket.join(clerkId);
-    console.log(`User ${clerkId} joined room`);
+    console.log(`User/Admin ${clerkId} joined room`);
   });
 
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
+  socket.on("sendMessage", async (data) => {
+    try {
+      const { senderId, receiverId, text, isAdmin } = data;
+
+      const newMessage = await Message.create(data);
+
+      if (isAdmin) {
+        const newNotif = await Notification.create({
+          clerkId: receiverId,
+          title: "Support Message",
+          message: text.length > 50 ? text.substring(0, 50) + "..." : text,
+          type: "CHAT",
+          isRead: false,
+        });
+
+        io.to(receiverId).emit("newMessage", newMessage);
+
+        io.to(receiverId).emit("notification", newNotif);
+      } else {
+        io.to("ADMIN").emit("newMessage", newMessage);
+      }
+    } catch (error) {
+      console.error("Socket Error:", error);
+    }
   });
 });
 
@@ -51,15 +88,15 @@ app.use(
     if (req.originalUrl === "/api/payment/webhook") {
       express.raw({ type: "application/json" })(req, res, next);
     } else {
-      express.json()(req, res, next); 
+      express.json()(req, res, next);
     }
   },
-  paymentRoutes
+  paymentRoutes,
 );
 
 app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 app.use(express.json());
-app.use(clerkMiddleware()); 
+app.use(clerkMiddleware());
 
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
@@ -70,7 +107,8 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/payment", paymentRoutes);
-app.use("/api/notifications", notificationRoutes); 
+app.use("/api/notifications", notificationRoutes);
+app.use("/api", messageRoutes);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Success" });
