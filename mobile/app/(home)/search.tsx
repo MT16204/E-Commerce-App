@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   boldText: {
     fontSize: 18,
     fontFamily: theme.fonts.semiBold,
-    color: "#272727",
+    color: theme.colors.textPrimary,
   },
   clearAllText: {
     fontSize: 15,

@@ -47,7 +47,7 @@ const RatingModal = ({
               {/* HEADER */}
               <View style={styles.header}>
                 <View style={styles.iconCircle}>
-                  <Ionicons name="star" size={32} color="#2563EB" />
+                  <Ionicons name="star" size={32} color={theme.colors.primaryPressed} />
                 </View>
                 <Text style={styles.title}>Rate Your Products</Text>
                 <Text style={styles.subtitle}>
@@ -97,7 +97,7 @@ const RatingModal = ({
                               }
                               size={34}
                               color={
-                                star <= currentRating ? "#2563EB" : "#B2B2B2"
+                                star <= currentRating ? theme.colors.primaryPressed : theme.colors.grayLight
                               }
                             />
                           </TouchableOpacity>
@@ -116,7 +116,7 @@ const RatingModal = ({
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <ActivityIndicator size="small" color={theme.colors.white} />
                   ) : (
                     <Text style={styles.btnSubmitText}>Submit Review</Text>
                   )}
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(20),
   },
   modalContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.colors.white,
     borderRadius: scale(24),
     padding: scale(24),
     width: "100%",
@@ -170,12 +170,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontFamily: theme.fonts.bold,
-    color: "#000000",
+    color: theme.colors.black,
     textAlign: "center",
   },
   subtitle: {
     fontSize: 14,
-    color: "#999999",
+    color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 4,
   },
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(20),
   },
   productCard: {
-    backgroundColor: "#F4F4F4",
+    backgroundColor: theme.colors.surface,
     borderRadius: scale(16),
     padding: scale(12),
     marginBottom: verticalScale(12),
@@ -205,11 +205,11 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 14,
     fontFamily: theme.fonts.bold,
-    color: "#272727",
+    color: theme.colors.textPrimary,
   },
   productDetails: {
     fontSize: 12,
-    color: "#999999",
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   starsContainer: {
@@ -231,10 +231,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   btnDisabled: {
-    backgroundColor: "#B2B2B2",
+    backgroundColor: theme.colors.grayLight,
   },
   btnSubmitText: {
-    color: "#FFFFFF",
+    color: theme.colors.white,
     fontSize: 16,
     fontFamily: theme.fonts.bold,
   },
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   btnCancelText: {
-    color: "#ABABAB",
+    color: theme.colors.primaryDisabled,
     fontSize: 14,
     fontFamily: theme.fonts.medium,
   },

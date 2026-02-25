@@ -24,12 +24,10 @@ const EditProfileScreen = () => {
   const router = useRouter();
   const { user, isLoaded } = useUser();
 
-  // State thông tin cá nhân (Theo Figma & Model)
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [email] = useState(user?.emailAddresses[0]?.emailAddress || "");
   const [phone, setPhone] = useState(user?.phoneNumbers[0]?.phoneNumber || "");
 
-  // State đổi mật khẩu (Tận dụng logic ResetScreen của bạn)
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -39,14 +37,11 @@ const EditProfileScreen = () => {
     if (!isLoaded) return;
     setLoading(true);
     try {
-      // 1. Cập nhật Clerk (Hệ thống Auth)
       const nameParts = fullName.split(" ");
       await user?.update({
         firstName: nameParts[0],
         lastName: nameParts.slice(1).join(" "),
       });
-
-      // 2. Logic đổi mật khẩu nếu người dùng nhập mật khẩu mới
       if (newPassword) {
         if (!currentPassword) {
           Alert.alert(
@@ -97,7 +92,6 @@ const EditProfileScreen = () => {
           </View>
 
           <View style={styles.form}>
-            {/* FULL NAME - Sử dụng mã màu F4F4F4 từ saved info */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Full Name</Text>
               <View style={styles.inputWrapper}>
@@ -139,13 +133,13 @@ const EditProfileScreen = () => {
                   value={currentPassword}
                   onChangeText={setCurrentPassword}
                   secureTextEntry={!showPass}
-                  placeholder="Required to change password"
+                  placeholder="Enter new password"
                 />
                 <TouchableOpacity onPress={() => setShowPass(!showPass)}>
                   <Ionicons
                     name={showPass ? "eye-off" : "eye"}
                     size={20}
-                    color={theme.colors.black}
+                    color={theme.colors.primary}
                   />
                 </TouchableOpacity>
               </View>
@@ -160,8 +154,15 @@ const EditProfileScreen = () => {
                   value={newPassword}
                   onChangeText={setNewPassword}
                   secureTextEntry={!showPass}
-                  placeholder="Minimum 8 characters"
+                  placeholder="Enter new password"
                 />
+                <TouchableOpacity onPress={() => setShowPass(!showPass)}>
+                  <Ionicons
+                    name={showPass ? "eye-off" : "eye"}
+                    size={20}
+                    color={theme.colors.primary}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -184,7 +185,7 @@ const EditProfileScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.white }, //
+  container: { flex: 1, backgroundColor: theme.colors.white }, 
   scrollContent: {
     paddingHorizontal: scale(24),
     paddingBottom: verticalScale(30),
@@ -199,12 +200,12 @@ const styles = StyleSheet.create({
     height: scale(100),
     borderRadius: scale(50),
     backgroundColor: "#F4F4F4",
-  }, 
+  },
   editBadge: {
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#000000",
+    backgroundColor: theme.colors.primary,
     padding: scale(6),
     borderRadius: scale(10),
     borderWidth: 2,
@@ -221,12 +222,12 @@ const styles = StyleSheet.create({
     fontFamily: theme.fonts.semiBold,
     marginBottom: verticalScale(8),
     color: "#272727",
-  }, 
+  },
   inputGroup: { marginBottom: verticalScale(20) },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F4F4F4", 
+    backgroundColor: "#F4F4F4",
     height: verticalScale(56),
     borderRadius: scale(16),
     paddingHorizontal: scale(16),
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: theme.fonts.medium,
     color: "#000000",
-  }, 
+  },
   divider: {
     height: 1,
     backgroundColor: "#EBEBEB",
@@ -244,7 +245,7 @@ const styles = StyleSheet.create({
   },
   footer: { padding: scale(24), backgroundColor: "#FFFFFF" },
   updateBtn: {
-    backgroundColor: "#000000", 
+    backgroundColor: theme.colors.primary,
     height: verticalScale(56),
     borderRadius: scale(28),
     justifyContent: "center",
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontFamily: theme.fonts.bold,
-  }, 
+  },
 });
 
 export default EditProfileScreen;

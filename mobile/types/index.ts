@@ -17,9 +17,12 @@ export interface User {
   clerkId: string;
   email: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   imageUrl: string;
+  stripeCustomerId?: string;
   addresses: Address[];
-  wishlist: string[];
+  wishlist: string[] | Product[];
   createdAt: string;
   updatedAt: string;
 }
@@ -77,6 +80,16 @@ export interface Review {
   rating: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Notification {
+  _id: string;
+  title: string;
+  message: string;
+  type: "ORDER" | "CHAT" | "PROMOTION";
+  isRead: boolean;
+  order?: string | Partial<Order>; 
+  createdAt: string;
 }
 
 export interface CartItem {

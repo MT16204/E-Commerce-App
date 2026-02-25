@@ -20,7 +20,7 @@ import ProductsGrid from "@/components/ProductsGrid";
 import useProducts from "@/hooks/useProducts";
 import useCart from "@/hooks/useCart";
 import useWishlist from "@/hooks/useWishlist";
-import useNotifications from "@/hooks/useNotifications"; 
+import useNotifications from "@/hooks/useNotifications";
 import LoadingState from "@/components/LoadingState";
 import PromoCarousel from "@/components/PromoCarousel";
 import ProductCard from "@/components/ProductCard";
@@ -140,12 +140,18 @@ const HomeScreen = () => {
               <View style={styles.topRow}>
                 <Text style={styles.logoText}>NOVA</Text>
                 <View style={styles.headerIcons}>
-                  <TouchableOpacity style={styles.iconButton}>
-                    <Ionicons
-                      name="chatbubble-outline"
-                      size={24}
-                      color={theme.colors.white}
-                    />
+                  <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={() => router.push("/customer-service")}
+                  >
+                    <View>
+                      <Ionicons
+                        name="chatbubble-outline"
+                        size={24}
+                        color={theme.colors.white}
+                      />
+                      {unreadCount > 0 && <View style={styles.dotBadge} />}
+                    </View>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.iconButton}
@@ -346,7 +352,18 @@ const styles = StyleSheet.create({
     letterSpacing: 2.8,
   },
   headerIcons: { flexDirection: "row" },
-  iconButton: { marginLeft: scale(15) },
+  dotBadge: {
+    position: "absolute",
+    right: -2,
+    top: -2,
+    backgroundColor: theme.colors.primary,
+    width: scale(10),
+    height: scale(10),
+    borderRadius: scale(5),
+    borderWidth: 1.5,
+    borderColor: theme.colors.white,
+  },
+  iconButton: { marginLeft: scale(15), position: "relative" },
   searchBox: {
     backgroundColor: theme.colors.white,
     flexDirection: "row",
@@ -360,7 +377,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: -4,
     top: -4,
-    backgroundColor: theme.colors.primary, 
+    backgroundColor: theme.colors.primary,
     borderRadius: 10,
     minWidth: 16,
     height: 16,
