@@ -17,12 +17,25 @@ export async function createOrder(req, res) {
       });
       if (existingOrder) {
         console.log("⚠️ DUPLICATE DETECTED: Order already created by Webhook.");
-
         await triggerNotification(req, user, existingOrder, totalPrice);
-
         return res
           .status(200)
           .json({ message: "Order already exists", order: existingOrder });
+      }
+    }
+
+    // Checks stock before create order
+    for (const item of orderItems) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        return res
+          .status(404)
+          .json({ error: `Product not found: ${item.product}` });
+      }
+      if (product.stock < item.quantity) {
+        return res.status(400).json({
+          error: `Insufficient stock for "${product.name}". Available: ${product.stock}, Requested: ${item.quantity}`,
+        });
       }
     }
 
@@ -38,9 +51,16 @@ export async function createOrder(req, res) {
     await order.save();
     console.log("✅ NEW ORDER SAVED TO DB:", order._id);
 
+    // Deduct stock after the order is successfully saved
+    for (const item of orderItems) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stock: -item.quantity },
+      });
+    }
+    console.log("✅ Stock updated for all items");
+
     await triggerNotification(req, user, order, totalPrice);
 
-    // Update Stock...
     res.status(201).json({ message: "Order created successfully", order });
   } catch (error) {
     console.error("🔥 ERROR IN CREATE ORDER:", error.message);
@@ -63,9 +83,7 @@ async function triggerNotification(req, user, order, totalPrice) {
 
     const io = req.app.get("socketio");
     if (!io) {
-      console.log(
-        "❌ STEP 2 ERROR: Socket.io instance not found in app configuration!",
-      );
+      console.log("❌ STEP 2 ERROR: Socket.io instance not found!");
       return;
     }
     console.log("📍 STEP 2: Socket instance OK");
@@ -126,23 +144,35 @@ export async function updateOrderStatus(req, res) {
     const { orderId } = req.params;
     const { status } = req.body;
 
-    const validStatuses = ["pending", "shipped", "delivered"];
+    const validStatuses = ["pending", "shipped", "delivered", "cancelled"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: "Invalid status" });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+
+    if (status === "cancelled" && order.status === "pending") {
+      for (const item of order.orderItems) {
+        await Product.findByIdAndUpdate(item.product, {
+          $inc: { stock: item.quantity },
+        });
+      }
+      console.log("✅ Stock restored for cancelled order");
     }
 
     const updateData = { status };
     if (status === "shipped") updateData.shippedAt = Date.now();
     if (status === "delivered") updateData.deliveredAt = Date.now();
 
-    const order = await Order.findByIdAndUpdate(orderId, updateData, {
+    const updatedOrder = await Order.findByIdAndUpdate(orderId, updateData, {
       new: true,
       runValidators: true,
     });
 
-    if (!order) return res.status(404).json({ error: "Order not found" });
-
-    res.status(200).json({ message: "Status updated successfully", order });
+    res
+      .status(200)
+      .json({ message: "Status updated successfully", order: updatedOrder });
   } catch (error) {
     console.error("Error in updateOrderStatus controller:", error);
     res.status(500).json({ error: "Internal server error" });

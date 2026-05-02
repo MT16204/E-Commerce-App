@@ -10,11 +10,10 @@ export const useOrders = (status: string) => {
     // Add status to the queryKey so React Query refetches when tab changes
     queryKey: ["orders", status],
     queryFn: async () => {
-      // Send the status as a query parameter to your updated backend
       const { data } = await api.get("/orders", {
         params: { status },
       });
-      return data.orders;
+      return data.orders ?? [];
     },
     refetchInterval: 6000,
   });

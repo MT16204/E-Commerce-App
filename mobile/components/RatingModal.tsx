@@ -47,7 +47,11 @@ const RatingModal = ({
               {/* HEADER */}
               <View style={styles.header}>
                 <View style={styles.iconCircle}>
-                  <Ionicons name="star" size={32} color={theme.colors.primaryPressed} />
+                  <Ionicons
+                    name="star"
+                    size={32}
+                    color={theme.colors.primaryPressed}
+                  />
                 </View>
                 <Text style={styles.title}>Rate Your Products</Text>
                 <Text style={styles.subtitle}>
@@ -60,52 +64,58 @@ const RatingModal = ({
                 showsVerticalScrollIndicator={false}
                 style={styles.scrollView}
               >
-                {order?.orderItems.map((item, index) => {
-                  const productId = item.product._id;
-                  const currentRating = productRatings[productId] || 0;
+                {order?.orderItems
+                  .filter((item) => item.product?._id)
+                  .map((item, index) => {
+                    const productId = item.product._id;
+                    const currentRating = productRatings[productId] || 0;
 
-                  return (
-                    <View key={item._id || index} style={styles.productCard}>
-                      <View style={styles.productHeader}>
-                        <Image
-                          source={item.image}
-                          style={styles.productImage}
-                          contentFit="cover"
-                        />
-                        <View style={styles.productInfo}>
-                          <Text style={styles.productName} numberOfLines={1}>
-                            {item.name}
-                          </Text>
-                          <Text style={styles.productDetails}>
-                            Qty: {item.quantity} • ${item.price.toFixed(2)}
-                          </Text>
+                    return (
+                      <View key={item._id || index} style={styles.productCard}>
+                        <View style={styles.productHeader}>
+                          <Image
+                            source={item.image}
+                            style={styles.productImage}
+                            contentFit="cover"
+                          />
+                          <View style={styles.productInfo}>
+                            <Text style={styles.productName} numberOfLines={1}>
+                              {item.name}
+                            </Text>
+                            <Text style={styles.productDetails}>
+                              Qty: {item.quantity} • ${item.price.toFixed(2)}
+                            </Text>
+                          </View>
+                        </View>
+
+                        {/* STAR RATING */}
+                        <View style={styles.starsContainer}>
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <TouchableOpacity
+                              key={star}
+                              onPress={() => onRatingChange(productId, star)}
+                              activeOpacity={0.6}
+                              style={styles.starTouch}
+                            >
+                              <Ionicons
+                                name={
+                                  star <= currentRating
+                                    ? "star"
+                                    : "star-outline"
+                                }
+                                size={34}
+                                color={
+                                  star <= currentRating
+                                    ? theme.colors.primaryPressed
+                                    : theme.colors.grayLight
+                                }
+                              />
+                            </TouchableOpacity>
+                          ))}
                         </View>
                       </View>
-
-                      {/* STAR RATING */}
-                      <View style={styles.starsContainer}>
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <TouchableOpacity
-                            key={star}
-                            onPress={() => onRatingChange(productId, star)}
-                            activeOpacity={0.6}
-                            style={styles.starTouch}
-                          >
-                            <Ionicons
-                              name={
-                                star <= currentRating ? "star" : "star-outline"
-                              }
-                              size={34}
-                              color={
-                                star <= currentRating ? theme.colors.primaryPressed : theme.colors.grayLight
-                              }
-                            />
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                  );
-                })}
+                    );
+                  })}
               </ScrollView>
 
               {/* ACTIONS */}
@@ -116,7 +126,10 @@ const RatingModal = ({
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <ActivityIndicator size="small" color={theme.colors.white} />
+                    <ActivityIndicator
+                      size="small"
+                      color={theme.colors.white}
+                    />
                   ) : (
                     <Text style={styles.btnSubmitText}>Submit Review</Text>
                   )}
@@ -162,7 +175,7 @@ const styles = StyleSheet.create({
     width: scale(64),
     height: scale(64),
     borderRadius: scale(32),
-    backgroundColor: "#2563EB15", 
+    backgroundColor: "#2563EB15",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: verticalScale(12),

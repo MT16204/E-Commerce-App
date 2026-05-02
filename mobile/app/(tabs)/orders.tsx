@@ -56,7 +56,9 @@ const OrdersScreen = () => {
     setSelectedOrder(order);
     const initialRatings: { [key: string]: number } = {};
     order.orderItems.forEach((item) => {
-      initialRatings[item.product._id] = 0;
+      if (item.product?._id) {
+        initialRatings[item.product._id] = 0;
+      }
     });
     setProductRatings(initialRatings);
     setShowRatingModal(true);
@@ -73,15 +75,13 @@ const OrdersScreen = () => {
     }
 
     try {
-      await Promise.all(
-        selectedOrder.orderItems.map((item) =>
-          createReviewAsync({
-            productId: item.product._id,
-            orderId: selectedOrder._id,
-            rating: productRatings[item.product._id],
-          }),
-        ),
-      );
+      for (const item of selectedOrder.orderItems) {
+        await createReviewAsync({
+          productId: item.product._id,
+          orderId: selectedOrder._id,
+          rating: productRatings[item.product._id],
+        });
+      }
       Alert.alert("Success", "Thank you for your feedback!");
       setShowRatingModal(false);
     } catch (error: any) {
@@ -120,11 +120,7 @@ const OrdersScreen = () => {
       ) : isError ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconCircle}>
-            <Feather
-              name="alert-circle"
-              size={80}
-              color={theme.colors.red}
-            />
+            <Feather name="alert-circle" size={80} color={theme.colors.red} />
           </View>
           {/* <Feather name="alert-circle" size={60} color={theme.colors.red} /> */}
           <Text style={styles.emptyTitle}>Oops! Something went wrong</Text>

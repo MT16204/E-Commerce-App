@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useStripe } from "@stripe/stripe-react-native";
 import * as Sentry from "@sentry/react-native";
+import { useQueryClient } from "@tanstack/react-query";
 
 import theme, { scale, verticalScale } from "@/theme";
 import SafeScreen from "@/components/SafeScreen";
@@ -27,6 +28,7 @@ import { useApi } from "@/lib/api";
 import { Address } from "@/types";
 
 const CheckoutScreen = () => {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const api = useApi();
   const { selectedIds } = useLocalSearchParams();
@@ -108,13 +110,21 @@ const CheckoutScreen = () => {
               price: item.product.price,
             })),
             shippingAddress: address,
-            totalPrice: Number(total.toFixed(2)), 
+            totalPrice: Number(total.toFixed(2)),
             paymentResult: { id: stripeId, status: "succeeded" },
           });
 
+          // Updates new stock after ordering
+          await queryClient.invalidateQueries({ queryKey: ["products"] });
+
           clearCart();
           router.replace("/(tabs)/home");
-        } catch (err) {
+        } catch (err: any) {
+          // Displays error when out of sotck
+          Alert.alert(
+            "Order Failed",
+            err?.response?.data?.error || "Failed to create order",
+          );
           console.error("Order creation error:", err);
         }
       }

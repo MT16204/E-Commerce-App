@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Product } from "../models/product.model.js";
 import { Cart } from "../models/cart.model.js";
 import { ENV } from "../config/env.js";
+import { Review } from "../models/review.model.js";
 
 const products = [
   {
@@ -172,33 +173,70 @@ const products = [
 
 const seedDatabase = async () => {
   try {
-    // Connect to MongoDB
     await mongoose.connect(ENV.DB_URL);
     console.log("✅ Connected to MongoDB");
 
-    // Clear existing products
     await Product.deleteMany({});
-    console.log("🗑️  Cleared existing products");
-
     await Cart.deleteMany({});
-    console.log("🗑️  Cleared existing carts");
+    await Review.deleteMany({});
+    console.log("🗑️  Cleared existing data");
 
-    // Insert seed products
-    await Product.insertMany(products);
-    console.log(`✅ Successfully seeded ${products.length} products`);
+    const insertedProducts = await Product.insertMany(
+      products.map((p) => ({ ...p, averageRating: 0, totalReviews: 0 }))
+    );
+    console.log(`✅ Seeded ${insertedProducts.length} products`);
 
-    // Display summary
-    const categories = [...new Set(products.map((p) => p.category))];
-    console.log("\n📊 Seeded Products Summary:");
-    console.log(`Total Products: ${products.length}`);
-    console.log(`Categories: ${categories.join(", ")}`);
+    const fakeUserId = new mongoose.Types.ObjectId();
+    const fakeOrderId = new mongoose.Types.ObjectId();
 
-    // Close connection
+    for (const product of insertedProducts) {
+      const originalData = products.find((p) => p.name === product.name);
+      const targetCount = originalData.totalReviews;
+      const targetAvg = originalData.averageRating;
+
+      const reviews = [];
+      let remaining = targetCount;
+      let ratingPool = Math.round(targetAvg * targetCount);
+
+      for (let i = 0; i < targetCount; i++) {
+        const isLast = i === targetCount - 1;
+        let rating;
+
+        if (isLast) {
+          rating = Math.min(5, Math.max(1, ratingPool));
+        } else {
+          rating = Math.min(5, Math.max(1, Math.round(targetAvg + (Math.random() - 0.5))));
+          ratingPool -= rating;
+        }
+
+        reviews.push({
+          productId: product._id,
+          userId: new mongoose.Types.ObjectId(),
+          orderId: new mongoose.Types.ObjectId(),
+          rating,
+        });
+      }
+
+      await Review.insertMany(reviews);
+
+      const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+      const avg = totalRating / reviews.length;
+
+      await Product.findByIdAndUpdate(product._id, {
+        totalReviews: reviews.length,
+        averageRating: Math.round(avg * 10) / 10,
+      });
+
+      console.log(
+        `  ✅ ${product.name}: ${reviews.length} reviews, avg ${Math.round(avg * 10) / 10}`
+      );
+    }
+
     await mongoose.connection.close();
-    console.log("\n✅ Database seeding completed and connection closed");
+    console.log("\n✅ Seeding completed");
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error seeding database:", error);
+    console.error("❌ Error seeding:", error);
     process.exit(1);
   }
 };
