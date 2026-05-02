@@ -22,10 +22,6 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.nova.app"
     },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
     "plugins": [
       "expo-router",
       [
@@ -53,6 +49,21 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9a26f88f-1e22-4664-a901-9bafa79fe7b5"
+      }
+    },
+    "owner": "mt16204",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9a26f88f-1e22-4664-a901-9bafa79fe7b5",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 30000
     }
   }
 }
