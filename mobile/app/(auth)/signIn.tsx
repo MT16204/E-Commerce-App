@@ -42,7 +42,6 @@ export default function SignInScreen() {
 
       router.replace("/");
     } catch (err: any) {
-
       if (err.errors[0].code === "form_identifier_not_found") {
         Alert.alert("Account not found", "Please check your email or sign up.");
       } else {
@@ -84,7 +83,9 @@ export default function SignInScreen() {
         >
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => {
+              router.push("/welcome");
+            }}
           >
             <Ionicons
               name="chevron-back"

@@ -69,7 +69,9 @@ export default function SignUpScreen() {
           <Animated.View entering={FadeInDown.duration(300)}>
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => router.back()}
+              onPress={() => {
+                router.push("/welcome");
+              }}
             >
               <Ionicons
                 name="chevron-back"
