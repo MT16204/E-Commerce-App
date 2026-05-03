@@ -215,7 +215,7 @@ const SearchScreen = () => {
                 >
                   <View style={styles.resultHeaderRow}>
                     <Text style={styles.resultCount}>
-                      Results for "{query}"
+                      Results for &quot;{query}&quot;
                     </Text>
                     <Text style={styles.foundText}>
                       {filteredProducts.length} found

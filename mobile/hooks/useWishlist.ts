@@ -16,7 +16,7 @@ const useWishlist = () => {
       const { data } = await api.get<{ wishlist: Product[] }>(
         "/users/wishlist",
       );
-      return data.wishlist;
+      return data.wishlist ?? [];
     },
   });
 

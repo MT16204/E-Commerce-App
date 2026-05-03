@@ -238,6 +238,8 @@ const FilterModal = forwardRef<FilterModalRef, FilterModalProps>(
   },
 );
 
+FilterModal.displayName = "FilterModal";
+
 const styles = StyleSheet.create({
   headerWrapper: { paddingHorizontal: scale(20) },
   scrollContent: {

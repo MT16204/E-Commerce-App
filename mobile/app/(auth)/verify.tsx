@@ -121,7 +121,7 @@ export default function VerifyScreen() {
             entering={FadeInDown.delay(100)}
             style={styles.subText}
           >
-            We've sent a {otpLength} digit verification code to{"\n"}
+            We&apos;ve sent a {otpLength} digit verification code to{"\n"}
             <Text
               style={{
                 color: theme.colors.heading,

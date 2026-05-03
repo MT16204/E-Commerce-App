@@ -139,7 +139,7 @@ const OrdersScreen = () => {
           </View>
           <Text style={styles.emptyTitle}>No {activeTab} orders</Text>
           <Text style={styles.emptySubtitle}>
-            You haven't placed any orders in this status.
+            You haven&apos;t placed any orders in this status.
           </Text>
           <TouchableOpacity
             style={styles.primaryBtn}

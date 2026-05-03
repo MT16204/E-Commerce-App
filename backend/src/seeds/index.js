@@ -3,6 +3,8 @@ import { Product } from "../models/product.model.js";
 import { Cart } from "../models/cart.model.js";
 import { ENV } from "../config/env.js";
 import { Review } from "../models/review.model.js";
+import { Order } from "../models/order.model.js";
+import { User } from "../models/user.model.js";
 
 const products = [
   {
@@ -179,6 +181,11 @@ const seedDatabase = async () => {
     await Product.deleteMany({});
     await Cart.deleteMany({});
     await Review.deleteMany({});
+    await Order.deleteMany({
+      "paymentResult.id": {
+        $in: ["demo_payment_1", "demo_payment_2", "demo_payment_3"],
+      },
+    });
     console.log("🗑️  Cleared existing data");
 
     const insertedProducts = await Product.insertMany(
@@ -186,16 +193,12 @@ const seedDatabase = async () => {
     );
     console.log(`✅ Seeded ${insertedProducts.length} products`);
 
-    const fakeUserId = new mongoose.Types.ObjectId();
-    const fakeOrderId = new mongoose.Types.ObjectId();
-
     for (const product of insertedProducts) {
       const originalData = products.find((p) => p.name === product.name);
       const targetCount = originalData.totalReviews;
       const targetAvg = originalData.averageRating;
 
       const reviews = [];
-      let remaining = targetCount;
       let ratingPool = Math.round(targetAvg * targetCount);
 
       for (let i = 0; i < targetCount; i++) {
@@ -205,7 +208,10 @@ const seedDatabase = async () => {
         if (isLast) {
           rating = Math.min(5, Math.max(1, ratingPool));
         } else {
-          rating = Math.min(5, Math.max(1, Math.round(targetAvg + (Math.random() - 0.5))));
+          rating = Math.min(
+            5,
+            Math.max(1, Math.round(targetAvg + (Math.random() - 0.5)))
+          );
           ratingPool -= rating;
         }
 
@@ -230,6 +236,94 @@ const seedDatabase = async () => {
       console.log(
         `  ✅ ${product.name}: ${reviews.length} reviews, avg ${Math.round(avg * 10) / 10}`
       );
+    }
+
+    // ✅ Seed demo user data
+    const demoUser = await User.findOne({ email: "demo@novastore.com" });
+
+    if (demoUser) {
+      await Cart.create({
+        user: demoUser._id,
+        clerkId: demoUser.clerkId,
+        items: [],
+      });
+      console.log("✅ Demo cart created");
+
+      const p1 = insertedProducts[0]; 
+      const p2 = insertedProducts[3]; 
+      const p3 = insertedProducts[1]; 
+
+      await Order.insertMany([
+        {
+          user: demoUser._id,
+          clerkId: demoUser.clerkId,
+          orderItems: [{
+            product: p1._id,
+            name: p1.name,
+            price: p1.price,
+            quantity: 1,
+            image: p1.images[0],
+          }],
+          shippingAddress: {
+            fullName: "Demo User",
+            streetAddress: "123 Nova Street",
+            city: "San Francisco",
+            state: "CA",
+            zipCode: "94105",
+            phoneNumber: "0123456789",
+          },
+          paymentResult: { id: "demo_payment_1", status: "succeeded" },
+          totalPrice: p1.price + 10,
+          status: "delivered",
+        },
+        {
+          user: demoUser._id,
+          clerkId: demoUser.clerkId,
+          orderItems: [{
+            product: p2._id,
+            name: p2.name,
+            price: p2.price,
+            quantity: 2,
+            image: p2.images[0],
+          }],
+          shippingAddress: {
+            fullName: "Demo User",
+            streetAddress: "123 Nova Street",
+            city: "San Francisco",
+            state: "CA",
+            zipCode: "94105",
+            phoneNumber: "0123456789",
+          },
+          paymentResult: { id: "demo_payment_2", status: "succeeded" },
+          totalPrice: p2.price * 2 + 10,
+          status: "shipped",
+        },
+        {
+          user: demoUser._id,
+          clerkId: demoUser.clerkId,
+          orderItems: [{
+            product: p3._id,
+            name: p3.name,
+            price: p3.price,
+            quantity: 1,
+            image: p3.images[0],
+          }],
+          shippingAddress: {
+            fullName: "Demo User",
+            streetAddress: "123 Nova Street",
+            city: "San Francisco",
+            state: "CA",
+            zipCode: "94105",
+            phoneNumber: "0123456789",
+          },
+          paymentResult: { id: "demo_payment_3", status: "succeeded" },
+          totalPrice: p3.price + 10,
+          status: "pending",
+        },
+      ]);
+      console.log("✅ Demo orders created (delivered/shipped/pending)");
+    } else {
+      console.log("⚠️  Demo user not found — tạo demo@novastore.com trên Clerk trước");
     }
 
     await mongoose.connection.close();

@@ -189,7 +189,7 @@ const CartScreen = () => {
           </View>
           <Text style={styles.emptyTitle}>Your cart is empty</Text>
           <Text style={styles.emptySubtitle}>
-            Looks like you haven't added anything to your cart yet.{" "}
+            Looks like you haven&apos;t added anything to your cart yet.{" "}
           </Text>
           <TouchableOpacity
             style={styles.browseButton}

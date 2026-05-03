@@ -11,7 +11,10 @@
     "ios": {
       "supportsTablet": true,
       "icon": "./assets/images/icon.png",
-      "bundleIdentifier": "com.nova.app"
+      "bundleIdentifier": "com.nova.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +30,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#5D76FF"
+          "backgroundColor": "#5D76FF",
+          "image": "./assets/images/icon.png",
+          "imageWidth": 200
         }
       ],
       [

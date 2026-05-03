@@ -14,7 +14,7 @@ const useCart = () => {
     queryKey: ["cart"],
     queryFn: async () => {
       const { data } = await api.get<{ cart: Cart }>("/cart");
-      return data.cart;
+      return data.cart ?? null;
     },
   });
 
@@ -77,7 +77,6 @@ const useCart = () => {
     cart?.items.reduce((sum, item) => {
       return item.product ? sum + item.quantity : sum;
     }, 0) ?? 0;
-
 
   return {
     cart,

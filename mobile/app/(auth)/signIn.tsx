@@ -42,6 +42,7 @@ export default function SignInScreen() {
 
       router.replace("/");
     } catch (err: any) {
+
       if (err.errors[0].code === "form_identifier_not_found") {
         Alert.alert("Account not found", "Please check your email or sign up.");
       } else {
