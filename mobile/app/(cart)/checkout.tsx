@@ -108,6 +108,7 @@ const CheckoutScreen = () => {
               name: item.product.name,
               quantity: item.quantity,
               price: item.product.price,
+              image: item.product.images?.[0],
             })),
             shippingAddress: address,
             totalPrice: Number(total.toFixed(2)),
@@ -120,12 +121,21 @@ const CheckoutScreen = () => {
           clearCart();
           router.replace("/(tabs)/home");
         } catch (err: any) {
-          // Displays error when out of sotck
+          console.error("❌ Order creation failed");
+          console.error("URL:", err.config?.baseURL, err.config?.url);
+          console.error("HTTP status:", err.response?.status);
+          console.error(
+            "Backend response:",
+            JSON.stringify(err.response?.data, null, 2),
+          );
+          console.error("Error message:", err.message);
+
           Alert.alert(
             "Order Failed",
-            err?.response?.data?.error || "Failed to create order",
+            err.response?.data?.error ||
+              err.message ||
+              "Failed to create order",
           );
-          console.error("Order creation error:", err);
         }
       }
     } catch (error: any) {
