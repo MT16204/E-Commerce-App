@@ -2,3 +2,7 @@ node_modules
 .env
 .env.local
 .DS_Store
+
+# Generated iOS build artifacts
+/ios/build/
+/ios/Pods/
